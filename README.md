@@ -22,6 +22,30 @@ AI 输出: {"action": "move", "object": "红色零件", "target": "检测区"}
 - JSON 负责把人的语言转换成机器可以执行的数据
 - robot.py 未来会被 ROS2 机器人控制程序替代
 
+## V2 新增功能
+
+- **SQLite Memory**：机器人记忆系统，数据持久化保存在 `database.db`
+- **Robot Knowledge Storage**：可保存环境信息、物体信息、用户知识
+- **Context-aware Task Planning**：AI 结合相关记忆做任务规划
+
+V2 工作流程：
+
+```
+用户输入 → 记忆查询 → 相关记忆 + 任务 → DeepSeek → JSON 动作 → robot.py
+```
+
+示例：
+
+```
+输入: 记住：A区域在生产线左侧
+输出: 已保存: A区域 -> 生产线左侧（环境信息）
+
+输入: 把零件送到A区域
+输出: 检索到记忆 A区域 -> 生产线左侧，AI 生成 move 指令，机器人执行
+```
+
+记忆保存在 SQLite 数据库中，关掉程序再打开仍然有效。
+
 ## 技术栈
 
 - Python 3.12
@@ -36,6 +60,8 @@ AI-Robot-Demo
 ├── main.py           # 主程序: 交互循环 / 单次任务
 ├── llm.py            # 大模型接口: 自然语言 -> JSON 动作指令
 ├── robot.py          # 模拟机器人: 执行 JSON 动作指令
+├── memory.py         # V2 记忆系统: SQLite 保存/查询记忆
+├── database.db       # V2 记忆数据库(自动生成，不提交 git)
 ├── README.md
 ├── requirements.txt
 ├── .env              # API 密钥(不提交到 GitHub)
@@ -90,6 +116,8 @@ python main.py --mock --task "把蓝色零件放到成品区"
 - `把蓝色零件放到成品区`
 - `扫描工作台`
 - `抓取绿色零件`
+- `记住：A区域在生产线左侧`（V2 记忆）
+- `把零件送到A区域`（V2 结合记忆规划）
 - `退出`
 
 ## 每个文件的作用
@@ -99,6 +127,7 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | main.py | 程序入口：接收用户输入，串联"AI 规划 -> 机器人执行" |
 | llm.py | DeepSeek 接口：设计系统提示词，把自然语言转成 JSON 动作指令；内置 MockPlanner 供离线测试 |
 | robot.py | 模拟机器人：维护工作台状态，按 JSON 指令执行移动/抓取/放置/扫描 |
+| memory.py | V2 记忆系统：SQLite 保存/查询记忆，格式化后提供给 AI 作为上下文 |
 | requirements.txt | 依赖清单 |
 | .env / .env.example | API 密钥配置 |
 | .gitignore | 防止密钥和缓存文件被上传 |
@@ -127,10 +156,12 @@ git push
 
 注意：`.env`、`__pycache__/`、`.vscode/` 已被 .gitignore 排除，不会上传，避免 API Key 泄露。
 
+V2 起，`database.db`（记忆数据库）也已加入 .gitignore。数据库是程序运行时自动生成的，clone 后首次运行即可创建，无需手动准备。
+
 ## 未来升级路线
 
-1. 阶段 1：DeepSeek + Python + JSON 任务规划(当前)
-2. 阶段 2：加入机器人记忆和环境信息
+1. 阶段 1：DeepSeek + Python + JSON 任务规划 ✅
+2. 阶段 2：加入机器人记忆和环境信息 ✅（SQLite Memory）
 3. 阶段 3：学习 ROS2 机器人通信系统
 4. 阶段 4：Gazebo 机器人仿真环境
 5. 阶段 5：接入真实机械臂和工业设备

@@ -34,6 +34,8 @@ class SimRobot:
         self.arm_position = "上料区"
         # 机械臂夹爪当前抓取的零件(None 表示空夹爪)
         self.gripper = None
+        # V2: 工位说明(从记忆中学到的新位置描述，如 A区域 -> 生产线左侧)
+        self.station_info = {}
 
     # ---------- 基础动作 ----------
 
@@ -43,8 +45,24 @@ class SimRobot:
             raise ValueError(
                 f"未知工位: {station}，可用工位: {list(self.workspace)}"
             )
-        print(f"  [机械臂] 移动到 {station}")
+        desc = self.station_info.get(station, "")
+        desc_text = f"（{desc}）" if desc else ""
+        print(f"  [机械臂] 移动到 {station}{desc_text}")
         self.arm_position = station
+
+    def add_station(self, name, description=""):
+        """V2: 让机器人学会一个新工位(从记忆中学到)"""
+        if name in self.workspace:
+            # 工位已存在，只补充说明
+            if description and name not in self.station_info:
+                self.station_info[name] = description
+            return False
+        self.workspace[name] = []
+        if description:
+            self.station_info[name] = description
+        desc = f"（{description}）" if description else ""
+        print(f"  [机械臂] 学会新位置: {name}{desc}")
+        return True
 
     def _pick(self, part):
         """在当前工位抓取零件"""

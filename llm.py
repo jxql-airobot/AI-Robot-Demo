@@ -21,9 +21,12 @@ from dotenv import load_dotenv
 # 允许的动作类型(与 robot.py 对齐)
 SUPPORTED_ACTIONS = ("move", "pick", "place", "scan", "status")
 
-# 系统提示词: 告诉大模型它的角色、输出格式和约束
-SYSTEM_PROMPT = """你是工业机器人的任务规划器。
-你的任务: 把用户的自然语言指令转换成一条 JSON 机器人动作指令。
+# 系统提示词模板: {memory} 会被替换成记忆上下文
+SYSTEM_PROMPT = """你现在是机器人任务规划AI。
+你拥有以下环境记忆：
+{memory}
+
+请结合用户任务和已有记忆生成JSON动作。
 
 可执行的动作:
 1. move   - 把某个零件从一个工位移动到另一个工位
@@ -37,7 +40,7 @@ SYSTEM_PROMPT = """你是工业机器人的任务规划器。
 5. status - 报告机器人当前状态
    示例: {"action": "status"}
 
-工位: 上料区、检测区、成品区
+工位: 上料区、检测区、成品区（还可以使用记忆中出现的新位置）
 零件: 红色零件、蓝色零件、绿色零件
 
 要求:
@@ -78,13 +81,15 @@ class DeepSeekPlanner:
         self.client = OpenAI(api_key=cfg["api_key"], base_url=cfg["base_url"])
         self.model = cfg["model"]
 
-    def plan_task(self, user_input):
-        """自然语言 -> JSON 动作指令"""
+    def plan_task(self, user_input, memory_text=""):
+        """自然语言 + 记忆上下文 -> JSON 动作指令"""
+        memory_section = memory_text if memory_text else "（暂无记忆）"
+        system_prompt = SYSTEM_PROMPT.replace("{memory}", memory_section)
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_input},
                 ],
                 temperature=0.1,  # 低温让输出更稳定
@@ -116,10 +121,20 @@ class MockPlanner:
     PARTS = ["红色零件", "蓝色零件", "绿色零件"]
     STATIONS = ["上料区", "检测区", "成品区"]
 
-    def plan_task(self, user_input):
+    def plan_task(self, user_input, memory_text=""):
+        """离线规划器: 也支持从记忆文本中识别新位置"""
         text = user_input
         part = next((p for p in self.PARTS if p in text), None)
         station = next((s for s in self.STATIONS if s in text), None)
+
+        # V2: 从记忆文本中提取主题(形如 "- A区域：生产线左侧（环境信息）")
+        topics = []
+        for line in memory_text.splitlines():
+            line = line.strip()
+            if line.startswith("- ") and "：" in line:
+                topics.append(line[2:].split("：")[0])
+        if station is None:
+            station = next((t for t in topics if t in text), None)
 
         if "扫描" in text or "查看" in text or "状态" in text:
             return {"action": "scan"}
@@ -129,6 +144,9 @@ class MockPlanner:
         if "移动" in text or "放" in text or "送到" in text or "运到" in text:
             if part and station:
                 return {"action": "move", "object": part, "target": station}
+            if station:
+                # 用户没指定具体零件时，默认拿第一个零件
+                return {"action": "move", "object": "红色零件", "target": station}
             if part:
                 return {"action": "pick", "object": part}
         return {

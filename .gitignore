@@ -1,6 +1,9 @@
 # 密钥文件，绝不能上传
 .env
 
+# V2 记忆数据库(运行时自动生成)
+database.db
+
 # Python 缓存
 __pycache__/
 *.pyc
