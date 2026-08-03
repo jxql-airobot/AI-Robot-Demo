@@ -91,7 +91,7 @@ class BrainNode(Node):
         if parsed:
             topic, content = parsed
             category = classify_memory(topic, content)
-            self.memory.remember(topic, content, category)
+            self._safe_remember(topic, content, category)
             self.pub_status.publish(
                 String(data=f"已保存记忆: {topic} -> {content} ({category})")
             )
@@ -106,7 +106,7 @@ class BrainNode(Node):
             return
 
         # 2. 记忆查询
-        rows = self.memory.search(task)
+        rows = self._safe_search(task)
         memory_text = self.memory.format_prompt(rows)
         self.pub_status.publish(String(data=f"检索到 {len(rows)} 条相关记忆"))
         for topic, content, category in rows:
@@ -121,6 +121,24 @@ class BrainNode(Node):
 
     def _publish_action(self, action):
         self.pub_action.publish(String(data=json.dumps(action, ensure_ascii=False)))
+
+    def _safe_remember(self, topic, content, category):
+        """记忆写入(容错): 数据库文件被误删时自动重建再写"""
+        try:
+            self.memory.remember(topic, content, category)
+        except Exception as exc:
+            self.get_logger().warn(f"记忆写入失败({exc}), 自动重建数据库后重试")
+            self.memory._init_db()
+            self.memory.remember(topic, content, category)
+
+    def _safe_search(self, task):
+        """记忆查询(容错): 数据库文件被误删时自动重建再查"""
+        try:
+            return self.memory.search(task)
+        except Exception as exc:
+            self.get_logger().warn(f"记忆查询失败({exc}), 自动重建数据库后重试")
+            self.memory._init_db()
+            return self.memory.search(task)
 
 
 def main(args=None):
