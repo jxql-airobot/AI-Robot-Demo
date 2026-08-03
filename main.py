@@ -16,7 +16,7 @@ AI-Robot-Demo 主程序入口
 import argparse
 import sys
 
-from llm import build_planner
+from llm import build_planner, load_config
 from robot import SimRobot
 
 
@@ -53,6 +53,20 @@ def interactive(planner, robot):
         run_once(planner, robot, task)
 
 
+def choose_mode(force_mock):
+    """决定运行模式:
+    - 命令行加了 --mock，强制离线演示模式
+    - 否则自动检测 .env 里是否有有效 API Key:
+      有 -> DeepSeek 真实模式；没有 -> 自动降级为离线演示模式
+    """
+    if force_mock:
+        return True, "离线演示模式(Mock，不调用 API)"
+    key = load_config().get("api_key", "")
+    if key.startswith("sk-") and key.isascii():
+        return False, "DeepSeek 真实模式"
+    return True, "离线演示模式(未检测到有效 API Key，自动降级)"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="AI 机器人 Demo: DeepSeek 大脑 + 模拟机器人"
@@ -69,9 +83,13 @@ def main():
     )
     args = parser.parse_args()
 
+    # 自动选择模式(也可用 --mock 强制离线)
+    mock, mode_text = choose_mode(args.mock)
+    print(f"[模式] {mode_text}")
+
     # 创建规划器(DeepSeek 或离线 Mock)
     try:
-        planner = build_planner(mock=args.mock)
+        planner = build_planner(mock=mock)
     except RuntimeError as exc:
         print(f"[配置错误] {exc}")
         sys.exit(1)

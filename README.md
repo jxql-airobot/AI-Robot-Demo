@@ -61,13 +61,15 @@ copy .env.example .env
 
 ### 3. 运行
 
-真实模式(需要 API Key)：
+方式一：双击桌面上的 **AI机器人Demo** 快捷方式（最省事）。
+
+方式二：命令行运行。
 
 ```bash
 python main.py
 ```
 
-离线演示模式(不需要 API Key，内置关键词规划器)：
+程序会自动判断：`.env` 里有有效 API Key 就使用 DeepSeek 真实模式，没有就自动降级为内置离线演示模式，无需手动加参数。也可以强制离线：
 
 ```bash
 python main.py --mock
@@ -100,6 +102,7 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | requirements.txt | 依赖清单 |
 | .env / .env.example | API 密钥配置 |
 | .gitignore | 防止密钥和缓存文件被上传 |
+| 启动AI机器人Demo.bat | 桌面快捷方式使用的启动脚本 |
 
 ## GitHub 上传规范
 
