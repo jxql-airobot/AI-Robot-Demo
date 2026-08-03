@@ -81,6 +81,30 @@ source ~/ros2_ws/install/setup.bash
 ros2 run ai_robot task_cli
 ```
 
+## V4 新增功能
+
+- **Gazebo 仿真世界**：带相机和差速轮的机器人 + 红/蓝/绿三个彩色零件
+- **vision_node 视觉节点**：OpenCV HSV 颜色识别，把检测结果写入记忆库
+- **视觉 + AI 结合**：AI 大脑规划时能查到"红色零件 -> 右侧区域（视觉识别）"这类视觉记忆
+
+```
+Gazebo 相机 ──/camera/image_raw──▶ vision_node（OpenCV 颜色识别）
+                                          │ 检测结果写入记忆
+                                          ▼
+                                    SQLite 记忆（物体信息）
+                                          │
+                              ai_brain 查询记忆 → DeepSeek 规划
+```
+
+运行（WSL Ubuntu 终端，带仿真窗口）：
+
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ai_robot demo_v4.launch.py
+```
+
+另开终端输入 `红色零件在哪里`、`扫描工作台`，AI 会结合视觉记忆回答/规划。
+
 ## 技术栈
 
 - Python 3.12
@@ -97,7 +121,7 @@ AI-Robot-Demo
 ├── robot.py          # 模拟机器人: 执行 JSON 动作指令
 ├── memory.py         # V2 记忆系统: SQLite 保存/查询记忆
 ├── database.db       # V2 记忆数据库(自动生成，不提交 git)
-├── ros2_ws/          # V3 ROS2 功能包(ai_robot: brain_node / robot_controller / task_cli)
+├── ros2_ws/          # V3/V4 ROS2 功能包(ai_robot: brain / controller / task_cli / vision + models)
 ├── README.md
 ├── requirements.txt
 ├── .env              # API 密钥(不提交到 GitHub)
@@ -154,6 +178,7 @@ python main.py --mock --task "把蓝色零件放到成品区"
 - `抓取绿色零件`
 - `记住：A区域在生产线左侧`（V2 记忆）
 - `把零件送到A区域`（V2 结合记忆规划）
+- `红色零件在哪里`（V4 结合视觉记忆）
 - `退出`
 
 ## 每个文件的作用
@@ -180,5 +205,5 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | V1 | LLM Robot Planner | DeepSeek + Python + JSON 任务规划 | ✅ 已完成 |
 | V2 | Memory Robot Agent | SQLite 记忆和环境信息 | ✅ 已完成 |
 | V3 | ROS2 Robot Framework | 学习机器人通信系统，让 AI 大脑连接机器人控制系统 | ✅ 已完成 |
-| V4 | Gazebo Simulation | 建立机器人仿真环境，并加入视觉感知（OpenCV/YOLO） | 规划中 |
+| V4 | Gazebo Simulation | 建立机器人仿真环境，并加入视觉感知（OpenCV/YOLO） | ✅ 已完成 |
 | V5 | Real Robot & Industrial Application | 连接真实机械臂和工业自动化设备 | 规划中 |
