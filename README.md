@@ -133,30 +133,9 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | .gitignore | 防止密钥和缓存文件被上传 |
 | 启动AI机器人Demo.bat | 桌面快捷方式使用的启动脚本 |
 
-## GitHub 上传规范
+## 安全说明
 
-第一次上传：
-
-```bash
-git init
-git add .
-git commit -m "first AI robot demo"
-git branch -M main
-git remote add origin 仓库地址
-git push -u origin main
-```
-
-以后更新：
-
-```bash
-git add .
-git commit -m "update project"
-git push
-```
-
-注意：`.env`、`__pycache__/`、`.vscode/` 已被 .gitignore 排除，不会上传，避免 API Key 泄露。
-
-V2 起，`database.db`（记忆数据库）也已加入 .gitignore。数据库是程序运行时自动生成的，clone 后首次运行即可创建，无需手动准备。
+`.env`（API Key）、`database.db`（记忆数据库）等敏感或自动生成的文件已被 `.gitignore` 排除，不会上传。数据库首次运行会自动创建，clone 后无需手动准备。
 
 ## 未来升级路线
 
