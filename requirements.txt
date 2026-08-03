@@ -1,0 +1,3 @@
+# 项目依赖
+openai>=1.30.0          # OpenAI SDK(也用于调用 DeepSeek API)
+python-dotenv>=1.0.0    # 读取 .env 配置文件
