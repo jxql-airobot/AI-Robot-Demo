@@ -137,10 +137,12 @@ python main.py --mock --task "把蓝色零件放到成品区"
 
 `.env`（API Key）、`database.db`（记忆数据库）等敏感或自动生成的文件已被 `.gitignore` 排除，不会上传。数据库首次运行会自动创建，clone 后无需手动准备。
 
-## 未来升级路线
+## 项目发展路线
 
-1. 阶段 1：DeepSeek + Python + JSON 任务规划 ✅
-2. 阶段 2：加入机器人记忆和环境信息 ✅（SQLite Memory）
-3. 阶段 3：学习 ROS2 机器人通信系统
-4. 阶段 4：Gazebo 机器人仿真环境
-5. 阶段 5：接入真实机械臂和工业设备
+| 版本 | 名称 | 内容 | 状态 |
+| --- | --- | --- | --- |
+| V1 | LLM Robot Planner | DeepSeek + Python + JSON 任务规划 | ✅ 已完成 |
+| V2 | Memory Robot Agent | SQLite 记忆和环境信息 | ✅ 已完成 |
+| V3 | ROS2 Robot Framework | 学习机器人通信系统，让 AI 大脑连接机器人控制系统 | 规划中 |
+| V4 | Gazebo Simulation | 建立机器人仿真环境，并加入视觉感知（OpenCV/YOLO） | 规划中 |
+| V5 | Real Robot & Industrial Application | 连接真实机械臂和工业自动化设备 | 规划中 |
