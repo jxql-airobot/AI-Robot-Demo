@@ -86,6 +86,7 @@ ros2 run ai_robot task_cli
 - **Gazebo 仿真世界**：带相机和差速轮的机器人 + 红/蓝/绿三个彩色零件
 - **vision_node 视觉节点**：OpenCV HSV 颜色识别，把检测结果写入记忆库
 - **视觉 + AI 结合**：AI 大脑规划时能查到"红色零件 -> 右侧区域（视觉识别）"这类视觉记忆
+- **机器人物理移动**：move 动作会驱动机器人在 Gazebo 里转向、开往目标工位（简单的"转向-直行"导航控制）
 
 ```
 Gazebo 相机 ──/camera/image_raw──▶ vision_node（OpenCV 颜色识别）

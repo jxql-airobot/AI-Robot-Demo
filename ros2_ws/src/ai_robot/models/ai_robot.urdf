@@ -90,6 +90,60 @@
     <child link="camera_link"/>
   </joint>
 
+  <!-- 前万向轮(支撑底盘, 防止机器人前倾栽倒) -->
+  <link name="caster_link">
+    <visual>
+      <origin xyz="0.25 0 -0.10" rpy="0 0 0"/>
+      <geometry><sphere radius="0.05"/></geometry>
+      <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0.25 0 -0.10" rpy="0 0 0"/>
+      <geometry><sphere radius="0.05"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+  </joint>
+
+  <!-- 后万向轮(防止后仰) -->
+  <link name="caster_back_link">
+    <visual>
+      <origin xyz="-0.25 0 -0.10" rpy="0 0 0"/>
+      <geometry><sphere radius="0.05"/></geometry>
+      <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="-0.25 0 -0.10" rpy="0 0 0"/>
+      <geometry><sphere radius="0.05"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </link>
+
+  <joint name="caster_back_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_back_link"/>
+  </joint>
+
+  <!-- 万向轮零摩擦(固定球体无法滚动, 必须让它在地面上滑动) -->
+  <gazebo reference="caster_link">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+  </gazebo>
+  <gazebo reference="caster_back_link">
+    <mu1>0.0</mu1>
+    <mu2>0.0</mu2>
+  </gazebo>
+
   <!-- 差速驱动插件: 订阅 /cmd_vel 驱动轮子 -->
   <gazebo>
     <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
