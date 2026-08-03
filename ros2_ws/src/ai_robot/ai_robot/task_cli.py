@@ -5,7 +5,12 @@ task_cli.py — 任务输入终端 (ROS2)
 =================================
 V3 新增: 用户在终端输入自然语言任务,
 发布到 /ai_robot/task, 并打印 /ai_robot/status 反馈。
+
+每条任务发出后, 终端会等待状态反馈全部打印完(连续 1.5 秒无新状态),
+再接收下一条命令, 保证显示顺序和任务一一对应。
 """
+
+import time
 
 import rclpy
 from rclpy.node import Node
@@ -28,13 +33,23 @@ class TaskCli(Node):
             try:
                 task = input("> ").strip()
             except (EOFError, KeyboardInterrupt):
+                print("\n再见!")
                 break
             if not task:
                 continue
             if task.lower() in ("exit", "quit", "退出"):
+                print("再见!")
                 break
             self.pub.publish(String(data=task))
-            rclpy.spin_once(self, timeout_sec=0.2)
+            # 等待状态反馈: 连续 1.5 秒没有新状态就认为本轮完成(最多等 20 秒)
+            last_status_time = time.monotonic()
+            deadline = time.monotonic() + 20
+            while rclpy.ok() and time.monotonic() < deadline:
+                got = rclpy.spin_once(self, timeout_sec=0.1)
+                if got:
+                    last_status_time = time.monotonic()
+                if time.monotonic() - last_status_time > 1.5:
+                    break
 
 
 def main(args=None):
@@ -44,4 +59,7 @@ def main(args=None):
         node.run()
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
