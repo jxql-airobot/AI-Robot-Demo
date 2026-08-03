@@ -46,6 +46,41 @@ V2 工作流程：
 
 记忆保存在 SQLite 数据库中，关掉程序再打开仍然有效。
 
+## V3 新增功能
+
+- **ROS2 Robot Framework**：AI 大脑以 ROS2 节点运行（WSL2 + Ubuntu 22.04 + ROS2 Humble）
+- **话题通信**：节点之间用话题（topic）收发数据，取代直接函数调用
+- **三个节点**：`task_cli`（任务输入）/ `ai_brain`（AI 大脑：记忆 + DeepSeek 规划）/ `robot_controller`（机器人控制器）
+
+```
+task_cli ──发布──▶ /ai_robot/task ──▶ ai_brain（记忆查询 + DeepSeek 规划）
+                                              │ 发布 JSON 动作
+                                              ▼
+                                         /ai_robot/action
+                                              │
+                              robot_controller（世界模型执行）
+                                              │ 发布状态
+                                              ▼
+                                         /ai_robot/status
+```
+
+ROS2 代码位于 `ros2_ws/src/ai_robot/`（WSL 中为 `/home/zlx06/ros2_ws/`），复用 V1/V2 的 llm.py、memory.py、robot.py。
+
+运行（WSL Ubuntu 终端）：
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+ros2 launch ai_robot demo.launch.py
+```
+
+另开一个终端输入任务：
+
+```bash
+source ~/ros2_ws/install/setup.bash
+ros2 run ai_robot task_cli
+```
+
 ## 技术栈
 
 - Python 3.12
@@ -62,6 +97,7 @@ AI-Robot-Demo
 ├── robot.py          # 模拟机器人: 执行 JSON 动作指令
 ├── memory.py         # V2 记忆系统: SQLite 保存/查询记忆
 ├── database.db       # V2 记忆数据库(自动生成，不提交 git)
+├── ros2_ws/          # V3 ROS2 功能包(ai_robot: brain_node / robot_controller / task_cli)
 ├── README.md
 ├── requirements.txt
 ├── .env              # API 密钥(不提交到 GitHub)
@@ -143,6 +179,6 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | --- | --- | --- | --- |
 | V1 | LLM Robot Planner | DeepSeek + Python + JSON 任务规划 | ✅ 已完成 |
 | V2 | Memory Robot Agent | SQLite 记忆和环境信息 | ✅ 已完成 |
-| V3 | ROS2 Robot Framework | 学习机器人通信系统，让 AI 大脑连接机器人控制系统 | 规划中 |
+| V3 | ROS2 Robot Framework | 学习机器人通信系统，让 AI 大脑连接机器人控制系统 | ✅ 已完成 |
 | V4 | Gazebo Simulation | 建立机器人仿真环境，并加入视觉感知（OpenCV/YOLO） | 规划中 |
 | V5 | Real Robot & Industrial Application | 连接真实机械臂和工业自动化设备 | 规划中 |

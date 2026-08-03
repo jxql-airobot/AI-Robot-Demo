@@ -4,6 +4,11 @@
 # V2 记忆数据库(运行时自动生成)
 database.db
 
+# V3 ROS2 构建产物(在 WSL 中生成)
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
 # Python 缓存
 __pycache__/
 *.pyc
