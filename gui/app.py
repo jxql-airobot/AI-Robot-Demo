@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-app.py — AI Robot Agent GUI 主入口 (V5.1)
-=========================================
+app.py — AI Robot 智能体 GUI 主入口 (V5.1)
+==========================================
 Streamlit 单页应用（ROS2 模式为主）：
   1. 任务对话区   ：下发自然语言任务，实时展示状态反馈
   2. 工作台状态区 ：解析 /ai_robot/status 成工位表格
@@ -10,8 +10,9 @@ Streamlit 单页应用（ROS2 模式为主）：
   4. 视觉感知区   ：展示最近一次 /ai_robot/vision 识别结果（第一版不做实时视频）
   5. 机器人状态区 ：展示 /odom 位置与速度
 
+界面文字统一在 language.py 管理（V5.1 中文化）。
 运行（WSL，需先 source ROS2）：
-  streamlit run gui/app.py
+  python3 -m streamlit run gui/app.py
 """
 
 import json
@@ -29,8 +30,11 @@ import streamlit as st  # noqa: E402
 
 from backend import Ros2Backend  # noqa: E402
 from config import STATUS_QUIET_SECONDS, STATUS_WAIT_TIMEOUT_SECONDS  # noqa: E402
+import language as L  # noqa: E402
 
-st.set_page_config(page_title="AI Robot Agent V5.1", page_icon="🤖", layout="wide")
+st.set_page_config(
+    page_title=L.TITLE_WITH_VERSION, page_icon="🤖", layout="wide"
+)
 
 
 # ---------- 工具函数 ----------
@@ -60,7 +64,7 @@ def execute_task(backend, task):
     last = time.monotonic()
     deadline = time.monotonic() + STATUS_WAIT_TIMEOUT_SECONDS
 
-    with st.spinner("AI 大脑规划与机器人执行中..."):
+    with st.spinner(L.CHAT_SPINNER):
         while time.monotonic() < deadline:
             status = backend.get_status()
             if (
@@ -78,71 +82,67 @@ def execute_task(backend, task):
                 break
             time.sleep(0.1)
 
-    return collected if collected else ["（未收到状态反馈，请确认仿真系统已启动）"]
+    return collected if collected else [L.CHAT_NO_RESPONSE]
 
 
 # ---------- 侧边栏：模式与连接 ----------
 
 with st.sidebar:
-    st.title("🤖 AI Robot Agent")
-    st.caption("V5.1 · Streamlit 客户端")
+    st.title(L.SIDEBAR_TITLE)
+    st.caption(L.SIDEBAR_CAPTION)
 
-    mode = st.radio("后端模式", ["ROS2（主模式）", "Local（暂未开放）"], index=0)
+    mode_idx = st.radio(L.MODE_LABEL, [L.MODE_ROS2, L.MODE_LOCAL], index=0)
+    is_local = mode_idx == 1
 
-    if st.button("连接 / 重连"):
+    if st.button(L.BUTTON_CONNECT):
         if st.session_state.get("backend"):
             st.session_state["backend"].close()
             st.session_state["backend"] = None
 
-    if mode.startswith("Local"):
+    if is_local:
         if st.session_state.get("backend"):
             st.session_state["backend"].close()
             st.session_state["backend"] = None
-        st.info("Local 模式为后续版本功能，V5.1 暂未开放。")
+        st.info(L.INFO_LOCAL_NOT_AVAILABLE)
         backend = None
     else:
         if st.session_state.get("backend") is None:
             try:
                 st.session_state["backend"] = Ros2Backend()
             except Exception as exc:
-                st.error(f"ROS2 连接失败：{exc}")
-                st.caption("请确认：① 在 WSL 中 source 过 ROS2；② 仿真系统已启动。")
+                st.error(L.ERROR_CONNECT_FAILED.format(error=exc))
+                st.caption(L.HINT_CHECK_ENV)
         backend = st.session_state.get("backend")
 
     if backend:
-        st.success(f"已连接：{backend.name} 模式")
-        st.caption("仿真系统需已启动（ros2 launch ai_robot demo_v4.launch.py）")
+        mode_name = L.MODE_NAMES.get(backend.name, backend.name)
+        st.success(L.STATUS_CONNECTED.format(mode=mode_name))
+        st.caption(L.HINT_SIM_REQUIRED)
 
 # ---------- 主界面 ----------
 
-st.title("AI Robot Agent V5.1")
-st.caption("Streamlit 独立客户端 · 不修改 V1-V4 任何代码与节点")
+st.title(L.TITLE_WITH_VERSION)
+st.caption(L.MAIN_CAPTION)
 
 if backend is None:
     st.stop()
 
 tab_chat, tab_ws, tab_mem, tab_vis, tab_robot = st.tabs(
-    ["💬 任务对话", "🗂 工作台状态", "🧠 记忆查看", "👁 视觉感知", "🤖 机器人状态"]
+    [L.TAB_CHAT, L.TAB_WORKSPACE, L.TAB_MEMORY, L.TAB_VISION, L.TAB_ROBOT]
 )
 
 
 # 1) 任务对话区
 with tab_chat:
-    st.subheader("任务对话")
-    st.caption("输入自然语言任务，AI 大脑规划后由机器人执行。")
+    st.subheader(L.CHAT_SUBHEADER)
+    st.caption(L.CHAT_CAPTION)
 
     if "history" not in st.session_state:
         st.session_state["history"] = []
 
-    with st.expander("示例指令"):
-        examples = [
-            "扫描工作台",
-            "红色零件在哪里",
-            "把蓝色零件放到成品区",
-            "记住：A区域在生产线左侧",
-        ]
-        cols = st.columns(len(examples))
-        for col, ex in zip(cols, examples):
+    with st.expander(L.CHAT_EXAMPLES_TITLE):
+        cols = st.columns(len(L.CHAT_EXAMPLE_TASKS))
+        for col, ex in zip(cols, L.CHAT_EXAMPLE_TASKS):
             if col.button(ex, key=f"ex_{ex}"):
                 st.session_state["pending_task"] = ex
 
@@ -150,7 +150,7 @@ with tab_chat:
         with st.chat_message(role):
             st.markdown(text)
 
-    prompt = st.chat_input("下达任务，例如：把红色零件移动到检测区")
+    prompt = st.chat_input(L.CHAT_INPUT_PLACEHOLDER)
     pending = st.session_state.pop("pending_task", None)
     if prompt or pending:
         task = prompt or pending
@@ -165,24 +165,24 @@ with tab_chat:
 
 # 2) 工作台状态区
 with tab_ws:
-    st.subheader("工作台状态")
-    if st.button("刷新", key="ws_refresh"):
+    st.subheader(L.WS_SUBHEADER)
+    if st.button(L.BUTTON_REFRESH, key="ws_refresh"):
         st.rerun()
 
     status = backend.get_status()
     if not status:
-        st.info("暂无状态数据。发送任务或等待仿真系统输出。")
+        st.info(L.WS_NO_DATA)
     else:
         text, ts = status
-        st.caption(f"最近更新：{time.strftime('%H:%M:%S', time.localtime(ts))}")
+        st.caption(L.WS_LAST_UPDATE.format(time=time.strftime("%H:%M:%S", time.localtime(ts))))
         ws = extract_workspace(text)
         if ws:
-            st.write("各工位零件分布：")
+            st.write(L.WS_TABLE_TITLE)
             for station, parts in ws.items():
                 left, right = st.columns([1, 3])
                 left.markdown(f"**{station}**")
-                right.write("、".join(parts) if parts else "（空）")
-            with st.expander("原始状态文本"):
+                right.write("、".join(parts) if parts else L.WS_EMPTY)
+            with st.expander(L.WS_RAW_EXPANDER):
                 st.code(text)
         else:
             st.write(text)
@@ -190,25 +190,27 @@ with tab_ws:
 
 # 3) 记忆查看区（只读）
 with tab_mem:
-    st.subheader("记忆查看（只读）")
-    st.caption("查看和查询 SQLite 记忆；V5.1 暂不提供删除功能。")
+    st.subheader(L.MEM_SUBHEADER)
+    st.caption(L.MEM_CAPTION)
 
-    query = st.text_input("关键词查询", placeholder="例如：零件 / 区域 / 检测区")
-    categories = st.multiselect(
-        "分类筛选", ["环境信息", "物体信息", "用户知识"], default=[]
-    )
+    query = st.text_input(L.MEM_SEARCH_LABEL, placeholder=L.MEM_SEARCH_PLACEHOLDER)
+    categories = st.multiselect(L.MEM_FILTER_LABEL, L.MEM_CATEGORIES, default=[])
 
     rows = backend.search_memories(query) if query.strip() else backend.list_memories()
     if categories:
         rows = [r for r in rows if r[2] in categories]
 
     if not rows:
-        st.info("暂无记忆。")
+        st.info(L.MEM_EMPTY)
     else:
-        st.caption(f"共 {len(rows)} 条")
+        st.caption(L.MEM_COUNT.format(count=len(rows)))
         st.dataframe(
             [
-                {"主题": topic, "内容": content, "分类": category}
+                {
+                    L.MEM_COL_TOPIC: topic,
+                    L.MEM_COL_CONTENT: content,
+                    L.MEM_COL_CATEGORY: category,
+                }
                 for topic, content, category in rows
             ],
             width="stretch",
@@ -218,43 +220,43 @@ with tab_mem:
 
 # 4) 视觉感知区（识别结果，第一版不做实时视频流）
 with tab_vis:
-    st.subheader("视觉感知（识别结果）")
-    st.caption("第一版仅展示识别结果；实时视频流在后续迭代中实现。")
-    if st.button("刷新", key="vis_refresh"):
+    st.subheader(L.VIS_SUBHEADER)
+    st.caption(L.VIS_CAPTION)
+    if st.button(L.BUTTON_REFRESH, key="vis_refresh"):
         st.rerun()
 
     vision = backend.get_vision()
     if not vision:
-        st.info("暂无视觉识别结果（需要 Gazebo 相机 + vision_node 运行）。")
+        st.info(L.VIS_NO_DATA)
     else:
         data, ts = vision
-        st.caption(f"最近更新：{time.strftime('%H:%M:%S', time.localtime(ts))}")
+        st.caption(L.WS_LAST_UPDATE.format(time=time.strftime("%H:%M:%S", time.localtime(ts))))
         parts = data.get("parts", {})
         if parts:
-            st.write("识别到的零件与位置：")
+            st.write(L.VIS_PARTS_TITLE)
             for name, zone in parts.items():
                 st.markdown(f"- **{name}**：{zone}")
         else:
-            st.write("当前画面未识别到零件。")
-        with st.expander("原始识别结果"):
+            st.write(L.VIS_NONE)
+        with st.expander(L.VIS_RAW_EXPANDER):
             st.json(data)
 
 
 # 5) 机器人状态区（里程计）
 with tab_robot:
-    st.subheader("机器人状态（里程计）")
-    if st.button("刷新", key="odom_refresh"):
+    st.subheader(L.ROB_SUBHEADER)
+    if st.button(L.BUTTON_REFRESH, key="odom_refresh"):
         st.rerun()
 
     odom = backend.get_odom()
     if not odom:
-        st.info("暂无里程计数据（需要 Gazebo 仿真运行）。")
+        st.info(L.ROB_NO_DATA)
     else:
         data, ts = odom
-        st.caption(f"最近更新：{time.strftime('%H:%M:%S', time.localtime(ts))}")
+        st.caption(L.WS_LAST_UPDATE.format(time=time.strftime("%H:%M:%S", time.localtime(ts))))
         c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("X 坐标", f"{data['x']:.2f} m")
-        c2.metric("Y 坐标", f"{data['y']:.2f} m")
-        c3.metric("朝向 Yaw", f"{data['yaw']:.2f} rad")
-        c4.metric("线速度", f"{data['linear_x']:.2f} m/s")
-        c5.metric("角速度", f"{data['angular_z']:.2f} rad/s")
+        c1.metric(L.ROB_METRIC_X, f"{data['x']:.2f} m")
+        c2.metric(L.ROB_METRIC_Y, f"{data['y']:.2f} m")
+        c3.metric(L.ROB_METRIC_YAW, f"{data['yaw']:.2f} rad")
+        c4.metric(L.ROB_METRIC_LINEAR, f"{data['linear_x']:.2f} m/s")
+        c5.metric(L.ROB_METRIC_ANGULAR, f"{data['angular_z']:.2f} rad/s")
