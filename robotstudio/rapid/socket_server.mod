@@ -1,15 +1,3 @@
-! ABB RobotStudio SocketServer for AI Agent control (V6.1)
-! Compatible with RobotWare 6.08 / IRC5 Virtual Controller.
-!
-! Protocol (matches robotstudio/command_schema.py):
-!   Client -> HOME | MOVEJ j1,...,j6 | MOVEL x,y,z,rx,ry,rz | GETPOS | STATUS
-!   Server <- OK j1,...,j6 | ERROR <message>
-!
-! Notes:
-!   - RAPID comments use exclamation mark, not percent sign
-!   - No file header comment block (avoids RobotStudio import issues)
-!   - Uses tool0 and v1000; adjust for your station if needed.
-
 MODULE socket_server
 
     VAR socketdev client_socket;
@@ -17,16 +5,17 @@ MODULE socket_server
     VAR string received_string;
     VAR num joint_angles{6};
 
-    PROC main()
+    PROC socket_main()
         SocketCreate server_socket;
         SocketBind server_socket, "0.0.0.0", 30000;
         SocketListen server_socket;
-        TPWrite "AI Agent SocketServer listening on port 30000";
+        TPWrite "AI Robot SocketServer listening on port 30000";
 
         WHILE TRUE DO
             SocketAccept server_socket, client_socket;
             TPWrite "Client connected";
             HandleClient;
+            SocketClose client_socket;
         ENDWHILE
     ENDPROC
 
@@ -36,31 +25,34 @@ MODULE socket_server
         WHILE TRUE DO
             received_string := "";
             SocketReceive client_socket \Str:=received_string;
+            received_string := TrimLine(received_string);
             reply := HandleCommand(received_string);
-            SocketSend client_socket \Str:=reply;
+            SocketSend client_socket \Str:=reply + "\0A";
         ENDWHILE
 
     ERROR
-        ! Client disconnected or socket error: close and return to accept loop
-        SocketClose client_socket;
+        TPWrite "Client disconnected, waiting for next client";
+        RETURN;
     ENDPROC
+
+    FUNC string TrimLine(string str)
+        VAR num i;
+        FOR i FROM 1 TO 4 DO
+            IF StrLen(str) > 0 THEN
+                IF StrPart(str, StrLen(str), 1) = "\0A" OR
+                   StrPart(str, StrLen(str), 1) = "\0D" THEN
+                    str := StrPart(str, 1, StrLen(str)-1);
+                ENDIF
+            ENDIF
+        ENDFOR
+        RETURN str;
+    ENDFUNC
 
     FUNC string HandleCommand(string cmd)
         VAR string command;
         VAR num pos;
-        VAR num i;
 
-        ! Remove trailing CR/LF characters sent by the client (up to 4)
-        FOR i FROM 1 TO 4 DO
-            IF StrLen(cmd) > 0 THEN
-                IF StrPart(cmd, StrLen(cmd), 1) = "\0A" OR
-                   StrPart(cmd, StrLen(cmd), 1) = "\0D" THEN
-                    cmd := StrPart(cmd, 1, StrLen(cmd)-1);
-                ENDIF
-            ENDIF
-        ENDFOR
-
-        pos := StrFind(cmd, " ");
+        pos := StrMatch(cmd, 1, " ");
         IF pos > 0 THEN
             command := StrPart(cmd, 1, pos-1);
         ELSE
@@ -68,8 +60,14 @@ MODULE socket_server
         ENDIF
 
         IF command = "HOME" THEN
+            joint_angles{1} := 0;
+            joint_angles{2} := 0;
+            joint_angles{3} := 0;
+            joint_angles{4} := 0;
+            joint_angles{5} := 0;
+            joint_angles{6} := 0;
             MoveAbsJ [[0,0,0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]], v1000, fine, tool0;
-            RETURN "OK 0,0,0,0,0,0";
+            RETURN "OK " + JointString();
         ELSEIF command = "MOVEJ" THEN
             IF ParseJoints(cmd) THEN
                 MoveAbsJ [[joint_angles{1},joint_angles{2},joint_angles{3},
@@ -92,20 +90,28 @@ MODULE socket_server
         VAR num pos;
         VAR num i;
         VAR string body;
+        VAR bool ok;
 
-        pos := StrFind(cmd, " ");
+        pos := StrMatch(cmd, 1, " ");
         IF pos <= 0 THEN
             RETURN FALSE;
         ENDIF
         body := StrPart(cmd, pos+1, StrLen(cmd)-pos);
 
         FOR i FROM 1 TO 6 DO
-            pos := StrFind(body, ",");
-            IF pos > 0 THEN
-                joint_angles{i} := StrToVal(StrPart(body, 1, pos-1));
+            IF StrLen(body) = 0 THEN
+                RETURN FALSE;
+            ENDIF
+            pos := StrMatch(body, 1, ",");
+            IF pos > 1 AND pos < StrLen(body) THEN
+                ok := StrToVal(StrPart(body, 1, pos-1), joint_angles{i});
                 body := StrPart(body, pos+1, StrLen(body)-pos);
             ELSE
-                joint_angles{i} := StrToVal(body);
+                ok := StrToVal(body, joint_angles{i});
+                body := "";
+            ENDIF
+            IF NOT ok THEN
+                RETURN FALSE;
             ENDIF
         ENDFOR
         RETURN TRUE;
