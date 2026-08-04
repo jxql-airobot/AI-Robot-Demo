@@ -24,3 +24,15 @@ venv/
 # V6.2 运行时日志（自动追加，可重新生成）
 experiments/results/runtime_logs.json
 experiments/results/idle_probe_result.txt
+
+# 模型与大文件（不上传）
+models/
+cache/
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# 论文最终文件（不公开，未提交前不上传）
+毕业论文.docx
+毕业论文.pdf
