@@ -1,0 +1,11 @@
+# V5.3 RAG 依赖（WSL 内安装）
+#
+# 1. torch CPU 版（国内网络）：
+#    Windows 侧从 https://download-r2.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+#    下载后拷入 WSL，再 pip install 本地 wheel（依赖走清华 PyPI）
+#
+# 2. 其余依赖（清华 PyPI）：
+#    pip install sentence-transformers modelscope pillow scipy
+#
+# 3. 模型（ModelScope 自动下载到 ~/.ai_robot/models/）：
+#    python3 agent/rag/model_download.py

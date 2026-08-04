@@ -1,0 +1,8 @@
+{
+  "embedding_model": {
+    "name": "bge-small-zh-v1.5",
+    "device": "cpu",
+    "model_path": "~/.ai_robot/models/bge-small-zh-v1.5",
+    "model_source": "modelscope"
+  }
+}

@@ -1,6 +1,6 @@
 # RAG 语义记忆设计 (V5.3)
 
-> 状态：设计完成，待实现。
+> 状态：第二步完成（embedder / vector_store / retriever 已实现并通过语义检索测试）。
 
 ## 1. 目标
 
