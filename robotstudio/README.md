@@ -55,3 +55,24 @@ python3 gui/test_robotstudio_backend.py
 4. 导入 `rapid/socket_server.mod` 并运行（监听端口 30000）
 5. `config.json` 中 `backend` 改为 `"real"`，确认 host/port
 6. Python TCP 连接测试
+
+详细步骤见 `docs/robotstudio_real_connection.md`。
+
+### RAPID 程序说明
+
+`rapid/socket_server.mod` 是运行在 ABB 虚拟控制器内的 Socket 服务程序：
+
+- **作用**：监听 TCP 30000 端口，接收 Python 文本命令并执行
+  HOME（MoveAbsJ 归零）/ MOVEJ（关节移动）/ MOVEL（直线移动）/ GETPOS（查询关节）
+- **导入方法**：RAPID -> 任务 T_ROB1 -> 导入模块 -> 选择 .mod
+- **通信流程**：Python 连接 -> 发命令 -> RAPID 执行 -> 回 OK/ERROR
+- **注意**：模板使用 tool0 / v1000，实际请按工作站调整
+
+### Mock / Real 切换
+
+```json
+{ "backend": "mock", "host": "127.0.0.1", "port": 30000, "timeout": 5 }
+```
+
+- `mock`：本地模拟，全链路可测
+- `real`：连接 RobotStudio 虚拟控制器（需先完成上方人工步骤）

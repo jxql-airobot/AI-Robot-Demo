@@ -1,6 +1,6 @@
 {
   "host": "127.0.0.1",
   "port": 30000,
-  "timeout_seconds": 5.0,
+  "timeout": 5,
   "backend": "mock"
 }

@@ -32,7 +32,7 @@ class RobotStudioBackend:
         return RobotStudioClient(
             host=cfg.get("host", "127.0.0.1"),
             port=int(cfg.get("port", 30000)),
-            timeout_seconds=float(cfg.get("timeout_seconds", 5.0)),
+            timeout_seconds=float(cfg.get("timeout", 5.0)),
             mock=mock,
         )
 

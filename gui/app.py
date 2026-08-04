@@ -124,9 +124,15 @@ with st.sidebar:
     if backend:
         mode_name = L.MODE_NAMES.get(backend.name, backend.name)
         st.success(L.STATUS_CONNECTED.format(mode=mode_name))
+        backend_label = "RobotStudio" if is_robotstudio else ("Local" if is_local else "Gazebo")
+        st.caption(L.STATUS_BACKEND.format(backend=backend_label))
         if is_robotstudio:
-            st.caption(L.ROBOT_RS_CONNECTED)
-        st.caption(L.HINT_SIM_REQUIRED)
+            rs_state = backend.get_odom()
+            tcp_ok = bool(rs_state and rs_state[0].get("connected"))
+            st.caption(L.ROBOT_RS_TCP + ("：已连接" if tcp_ok else "：未连接"))
+            st.caption(L.ROBOT_RS_CONNECTED if tcp_ok else L.ROBOT_RS_HINT)
+        else:
+            st.caption(L.HINT_SIM_REQUIRED)
 
 # ---------- 主界面 ----------
 
@@ -280,11 +286,12 @@ with tab_robot:
         data, ts = odom
         st.caption(L.WS_LAST_UPDATE.format(time=time.strftime("%H:%M:%S", time.localtime(ts))))
         if "joints" in data:
-            # V6.0: RobotStudio 模式显示关节位置
-            c1, c2, c3 = st.columns(3)
+            # V6.0: RobotStudio 模式显示关节/连接/动作/返回结果
+            c1, c2, c3, c4 = st.columns(4)
             c1.metric(L.ROBOT_RS_JOINTS, "、".join(f"{j:.1f}" for j in data["joints"]))
             c2.metric(L.ROBOT_RS_CONNECT_STATE, "已连接" if data.get("connected") else "未连接")
             c3.metric(L.ROBOT_RS_LAST_ACTION, data.get("last_action") or "-")
+            c4.metric(L.ROBOT_RS_LAST_RESULT, data.get("last_result") or "-")
         else:
             c1, c2, c3, c4, c5 = st.columns(5)
             c1.metric(L.ROB_METRIC_X, f"{data['x']:.2f} m")

@@ -16,7 +16,7 @@ DEFAULT_CONFIG_PATH = os.path.join(RS_DIR, "config.json")
 DEFAULTS = {
     "host": "127.0.0.1",
     "port": 30000,
-    "timeout_seconds": 5.0,
+    "timeout": 5.0,
     "backend": "mock",
 }
 
@@ -29,7 +29,16 @@ def load_config(path=None):
         try:
             with open(config_path, encoding="utf-8") as fh:
                 data = json.load(fh)
-            cfg.update({k: data[k] for k in cfg if k in data})
+            for key in ("host", "port", "backend"):
+                if key in data:
+                    cfg[key] = data[key]
+            if "timeout" in data:
+                cfg["timeout"] = data["timeout"]
+            elif "timeout_seconds" in data:
+                # 兼容旧字段名
+                cfg["timeout"] = data["timeout_seconds"]
         except (json.JSONDecodeError, OSError):
             pass
+    cfg["port"] = int(cfg["port"])
+    cfg["timeout"] = float(cfg["timeout"])
     return cfg

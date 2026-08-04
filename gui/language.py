@@ -33,9 +33,13 @@ ROBOT_BACKEND_LABEL = "机器人后端"
 ROBOT_BACKEND_GAZEBO = "Gazebo"
 ROBOT_BACKEND_ROBOTSTUDIO = "RobotStudio"
 ROBOT_RS_CONNECTED = "已连接：RobotStudio（Mock）"
+ROBOT_RS_HINT = "RobotStudio 模式：config backend=mock（本地）或 real（连接虚拟控制器）"
 ROBOT_RS_JOINTS = "关节位置"
 ROBOT_RS_CONNECT_STATE = "连接状态"
 ROBOT_RS_LAST_ACTION = "最后动作"
+ROBOT_RS_LAST_RESULT = "最后返回结果"
+ROBOT_RS_TCP = "TCP 连接状态"
+STATUS_BACKEND = "当前后端：{backend}"
 
 # ---------- 标签页 ----------
 TAB_CHAT = "💬 任务对话"

@@ -1,11 +1,26 @@
 %%% Version:1.17
 %%% Modified: 2026-08-04
 %%% Created: 2026-08-04
-% "RobotStudio SocketServer - AI Agent 控制入口 (V6.0)"
-% 导入到 RobotStudio 的 RAPID 程序模块。
-% 协议与 robotstudio/command_schema.py 一致：
-%   客户端 -> HOME / MOVEJ j1,...,j6 / MOVEL x,y,z,rx,ry,rz / GETPOS
-%   服务端 -> OK j1,...,j6 或 ERROR <message>
+% ============================================================
+% RobotStudio SocketServer - AI Agent 控制入口 (V6.0)
+% ============================================================
+% 作用：
+%   在 ABB 虚拟控制器内运行一个 TCP Socket 服务，
+%   接收 AI Agent（Python）发来的文本命令并执行机器人动作。
+%
+% 导入方法：
+%   1. RobotStudio 打开工作站 -> 双击"控制器"下的"RAPID"
+%   2. 右键任务 T_ROB1 -> 导入模块 -> 选择本文件 socket_server.mod
+%   3. 将模块中的 main 设为入口（程序指针 -> 从 main 启动）
+%
+% 通信流程：
+%   Python 连接 127.0.0.1:30000
+%     -> 发送 HOME / MOVEJ j1,...,j6 / MOVEL x,y,z,rx,ry,rz / GETPOS
+%     -> RAPID 执行并回复 OK j1,...,j6 或 ERROR <message>
+%
+% 协议与 robotstudio/command_schema.py 完全一致。
+% 注意：本模板使用 tool0 与 v1000，实际使用请按工作站的工具/速度调整。
+% ============================================================
 
 MODULE SocketServer
 
@@ -17,6 +32,7 @@ MODULE SocketServer
 
     PROC main()
         VAR string reply;
+
         SocketCreate server_socket;
         SocketBind server_socket, "0.0.0.0", 30000;
         SocketListen server_socket;
@@ -38,7 +54,16 @@ MODULE SocketServer
 
     FUNC string HandleCommand(string cmd)
         VAR string command;
-        command := StrPart(cmd, 1, StrFind(cmd, " ")-1);
+        VAR num pos;
+
+        cmd := StrPart(cmd, 1, StrLen(cmd));
+        pos := StrFind(cmd, " ");
+        IF pos > 0 THEN
+            command := StrPart(cmd, 1, pos-1);
+        ELSE
+            command := cmd;
+        ENDIF
+
         IF StrMatch(command, "HOME") THEN
             MoveAbsJ [[0,0,0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]], v1000, fine, tool0;
             RETURN "OK 0,0,0,0,0,0";
@@ -64,9 +89,13 @@ MODULE SocketServer
         VAR num pos;
         VAR num i;
         VAR string body;
+
         pos := StrFind(cmd, " ");
-        IF pos <= 0 THEN RETURN FALSE; ENDIF
+        IF pos <= 0 THEN
+            RETURN FALSE;
+        ENDIF
         body := StrPart(cmd, pos+1, StrLen(cmd)-pos);
+
         FOR i FROM 1 TO 6 DO
             pos := StrFind(body, ",");
             IF pos > 0 THEN
@@ -81,9 +110,9 @@ MODULE SocketServer
 
     FUNC string JointString()
         VAR string s;
-        s := NumToStr(joint_angles{1},0) + "," + NumToStr(joint_angles{2},0) + "," +
-             NumToStr(joint_angles{3},0) + "," + NumToStr(joint_angles{4},0) + "," +
-             NumToStr(joint_angles{5},0) + "," + NumToStr(joint_angles{6},0);
+        s := NumToStr(joint_angles{1},2) + "," + NumToStr(joint_angles{2},2) + "," +
+             NumToStr(joint_angles{3},2) + "," + NumToStr(joint_angles{4},2) + "," +
+             NumToStr(joint_angles{5},2) + "," + NumToStr(joint_angles{6},2);
         RETURN s;
     ENDFUNC
 

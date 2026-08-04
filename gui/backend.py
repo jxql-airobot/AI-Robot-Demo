@@ -77,6 +77,7 @@ class Ros2Backend(AgentBackend):
 
         self.memory = MemoryStore(ROS2_DB_PATH)
         self.robot_backend = robot_backend
+        self.last_result_message = ""
         self.client = None
         if robot_backend == "gazebo":
             from ros2_client import Ros2Client
@@ -96,7 +97,9 @@ class Ros2Backend(AgentBackend):
 
     def handle_task(self, task):
         """Agent 处理任务：生成可解释 Plan 并调用工具执行"""
-        return self.agent.handle(task)
+        resp = self.agent.handle(task)
+        self.last_result_message = resp.get("final_message", "")
+        return resp
 
     def send_task(self, text):
         self.client.send_task(text)
@@ -119,6 +122,7 @@ class Ros2Backend(AgentBackend):
                         "joints": state["joints"],
                         "connected": state.get("connected", False),
                         "last_action": state.get("last_action"),
+                        "last_result": self.last_result_message,
                     },
                     time.time(),
                 )
