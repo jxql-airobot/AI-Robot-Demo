@@ -141,6 +141,24 @@ class RobotStudioMockPlanner:
                 ],
                 "current_state": current_state,
             }
+        if "查询" in text or "查一下" in text or "环境记忆" in text:
+            return {
+                "task_analysis": "用户要求查询环境记忆",
+                "goal": "检索环境记忆中的区域位置",
+                "steps": [
+                    {
+                        "tool": "memory_tool",
+                        "args": {"query": text},
+                        "purpose": "查询环境记忆",
+                    },
+                    {
+                        "tool": "environment_tool",
+                        "args": {"memories": True},
+                        "purpose": "核对环境信息",
+                    },
+                ],
+                "current_state": current_state,
+            }
         if "读取" in text or "状态" in text or "当前" in text:
             action = "get_pose" if ("位姿" in text or "tcp" in text.lower()) else "get_position"
             return {

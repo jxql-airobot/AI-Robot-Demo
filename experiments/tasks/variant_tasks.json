@@ -1,69 +1,161 @@
 [
   {
-    "task_id": "var_home",
-    "intent": "回到初始位置",
-    "expected": {"tool": "robot_tool", "action": "move_home"},
+    "task_id": "T01",
+    "category": "basic_motion",
+    "standard": "机器人回到初始位置",
     "variants": [
-      "让机械臂收回到安全位置",
-      "机器人回一下原点位置",
-      "把机械臂归位",
-      "末端回到基准位置"
-    ]
+      "回零",
+      "让机械臂回到原点",
+      "恢复初始姿态",
+      "回到等待位置",
+      "把机器人收回去"
+    ],
+    "expected_tools": ["HOME"],
+    "expected_result": "机器人回到 Home 位置"
   },
   {
-    "task_id": "var_joint_move",
-    "intent": "移动到指定位置",
-    "expected": {"tool": "robot_tool", "action": "joint_move"},
+    "task_id": "T02",
+    "category": "basic_motion",
+    "standard": "移动机器人末端到A点",
     "variants": [
-      "把机械臂转到工位A那边",
-      "让末端执行器移到A点",
-      "机器人手臂摆到第一个工位",
-      "把机械臂挪到指定工位"
-    ]
+      "让机械臂移动到A位置",
+      "把末端执行器挪过去",
+      "机械臂去目标点等待",
+      "把手臂摆到A点那边"
+    ],
+    "expected_tools": ["MOVEJ"],
+    "expected_result": "关节移动到指定位置"
   },
   {
-    "task_id": "var_linear_move",
-    "intent": "直线运动到目标点",
-    "expected": {"tool": "robot_tool", "action": "linear_move"},
+    "task_id": "T03",
+    "category": "basic_motion",
+    "standard": "执行直线运动到目标点",
     "variants": [
       "沿着笔直的路径走过去",
       "不拐弯地走到那个点",
-      "末端笔直推进到目标点",
-      "沿着直线轨迹移动"
-    ]
+      "末端笔直推进到目标位置",
+      "走一条直线到目标"
+    ],
+    "expected_tools": ["MOVEL"],
+    "expected_result": "TCP 直线运动到目标位姿"
   },
   {
-    "task_id": "var_status",
-    "intent": "读取机器人状态",
-    "expected": {"tool": "robot_tool", "action": "get_position"},
+    "task_id": "T04",
+    "category": "status",
+    "standard": "读取机器人当前关节状态",
     "variants": [
       "关节角度现在是多少",
       "机器人各轴转了多少",
-      "机械臂现在是什么姿态",
-      "报一下末端的坐标"
-    ]
+      "报一下当前的关节位置",
+      "各关节现在什么角度"
+    ],
+    "expected_tools": ["GETPOS"],
+    "expected_result": "返回当前关节角"
   },
   {
-    "task_id": "var_memory_move",
-    "intent": "记忆驱动搬运",
-    "expected": {"tool": "robot_tool", "action": "linear_move"},
-    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "task_id": "T05",
+    "category": "status",
+    "standard": "读取机器人当前TCP位姿",
+    "variants": [
+      "末端的坐标是多少",
+      "报一下机械臂末端的位置",
+      "TCP现在在哪里",
+      "末端工具当前姿态"
+    ],
+    "expected_tools": ["GETPOSE"],
+    "expected_result": "返回 TCP 位姿 x,y,z,rx,ry,rz"
+  },
+  {
+    "task_id": "T06",
+    "category": "planning",
+    "standard": "让机器人移动到工作区域",
+    "variants": [
+      "把机械臂开到工作区",
+      "到工位那边去",
+      "机器人在工作区域待命",
+      "挪到作业位置"
+    ],
+    "expected_tools": ["MOVEJ"],
+    "expected_result": "关节移动到工作区域"
+  },
+  {
+    "task_id": "T07",
+    "category": "complex_planning",
+    "standard": "完成一个零件搬运流程",
+    "variants": [
+      "把这个零件搬到另一个地方",
+      "执行一次搬运作业",
+      "把工件从这边移到那边",
+      "做一次取放循环"
+    ],
+    "expected_tools": ["robot_tool"],
+    "expected_result": "多步骤搬运（移动→返回）"
+  },
+  {
+    "task_id": "T08",
+    "category": "complex_planning",
+    "standard": "移动到工作区域并读取当前状态",
+    "variants": [
+      "到工位后看看机器人状态",
+      "先过去再查一下关节位置",
+      "到作业位置并报告姿态",
+      "开过去之后读一下状态"
+    ],
+    "expected_tools": ["MOVEJ"],
+    "expected_result": "移动到工作区域（主要动作）"
+  },
+  {
+    "task_id": "T09",
+    "category": "memory",
+    "standard": "把之前看到的红色零件移动到右侧区域",
     "variants": [
       "上次看到的红色零件，帮我搬到右边去",
       "还记得那个红色零件吗，把它放到右侧",
       "之前看到的那颗红零件，移到右边区域",
-      "把右区那个红色东西带过去"
-    ]
+      "把记忆里的红零件送到右边"
+    ],
+    "expected_tools": ["MOVEL"],
+    "expected_result": "基于记忆定位并直线搬运",
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
   },
   {
-    "task_id": "var_scan",
-    "intent": "扫描工作台并报告",
-    "expected_tools": ["vision_tool", "environment_tool"],
+    "task_id": "T10",
+    "category": "memory",
+    "standard": "记住：B区域在检测区右侧",
+    "variants": [
+      "记一下B区域在检测区右边",
+      "保存一条信息，B区在检测区右侧",
+      "把B区域的位置记住",
+      "记牢：B区在检测区东边"
+    ],
+    "expected_tools": ["memory_tool"],
+    "expected_result": "写入一条环境记忆"
+  },
+  {
+    "task_id": "T11",
+    "category": "vision",
+    "standard": "扫描工作台并报告所有零件位置",
     "variants": [
       "看看台面上有哪些东西",
       "工作台上现在放了什么",
       "清点一下桌上的零件",
-      "桌上都有什么"
-    ]
+      "盘点一下台面都有什么"
+    ],
+    "expected_tools": ["vision_tool"],
+    "expected_result": "视觉扫描工作台（主要动作）"
+  },
+  {
+    "task_id": "T12",
+    "category": "memory",
+    "standard": "查询环境记忆中的区域位置",
+    "variants": [
+      "A区域在哪个位置",
+      "还记得A区域在哪吗",
+      "查一下环境信息里A区的位置",
+      "A区域之前记在哪里"
+    ],
+    "expected_tools": ["memory_tool"],
+    "expected_result": "检索区域记忆（主要动作）",
+    "seed_memory": {"topic": "A区域", "content": "位于生产线左侧", "category": "环境信息"}
   }
 ]

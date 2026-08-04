@@ -194,31 +194,46 @@ def agent_experiment():
         "> 说法就无法理解；LLM 智能体具备自然语言语义理解能力。以下用“语言变体",
         "> 任务集”（同一意图多种自然说法）对比两种规划器。",
         "",
-        "### 2.3.1 语言变体鲁棒性（rounds=3，mock 后端隔离“规划”变量）",
+        "### 2.3.1 语言变体鲁棒性（rounds=5，mock 后端隔离“规划”变量）",
         "",
-        "| 意图 | 变体数 | 规则规划器 | LLM 规划器 |",
-        "| --- | --- | --- | --- |",
+        "| 方法 | 标准表达 | 语言变体 |",
+        "| --- | --- | --- |",
     ]
-    intents = {
-        "var_home": "回到初始位置", "var_joint_move": "移动到指定位置",
-        "var_linear_move": "直线运动到目标点", "var_status": "读取机器人状态",
-        "var_memory_move": "记忆驱动搬运", "var_scan": "扫描工作台并报告",
-    }
-    for tid, intent in intents.items():
-        m_rows = [r for r in vr_mock if r["task_id"] == tid]
-        d_rows = [r for r in vr_ds if r["task_id"] == tid]
-        m_ok = sum(1 for r in m_rows if float(r["success_rate"]) == 1.0)
-        d_ok = sum(1 for r in d_rows if float(r["success_rate"]) == 1.0)
-        lines.append(
-            f"| {intent} | {len(m_rows)} | {m_ok}/{len(m_rows)} | {d_ok}/{len(d_rows)} |"
-        )
-    m_all = sum(1 for r in vr_mock if float(r["success_rate"]) == 1.0)
-    d_all = sum(1 for r in vr_ds if float(r["success_rate"]) == 1.0)
-    d_avg = sum(float(r["success_rate"]) for r in vr_ds) / len(vr_ds)
+    m_std = [r for r in vr_mock if r["expression_type"] == "standard"]
+    m_var = [r for r in vr_mock if r["expression_type"] == "variant"]
+    d_std = [r for r in vr_ds if r["expression_type"] == "standard"]
+    d_var = [r for r in vr_ds if r["expression_type"] == "variant"]
+    m_std_ok = sum(1 for r in m_std if float(r["success_rate"]) == 1.0)
+    m_var_ok = sum(1 for r in m_var if float(r["success_rate"]) == 1.0)
+    d_std_ok = sum(1 for r in d_std if float(r["success_rate"]) == 1.0)
+    d_var_ok = sum(1 for r in d_var if float(r["success_rate"]) == 1.0)
+    d_var_avg = sum(float(r["success_rate"]) for r in d_var) / max(len(d_var), 1)
     lines += [
-        f"| **合计** | {len(vr_mock)} | **{m_all}/{len(vr_mock)}（{m_all/len(vr_mock):.0%}）** | "
-        f"**{d_all}/{len(vr_ds)}（{d_all/len(vr_ds):.0%}）** |",
+        f"| 规则规划器 | {m_std_ok}/{len(m_std)}（{m_std_ok/max(len(m_std),1):.0%}） | "
+        f"{m_var_ok}/{len(m_var)}（{m_var_ok/max(len(m_var),1):.0%}） |",
+        f"| LLM 规划器（DeepSeek） | {d_std_ok}/{len(d_std)}（{d_std_ok/max(len(d_std),1):.0%}） | "
+        f"{d_var_ok}/{len(d_var)}（{d_var_ok/max(len(d_var),1):.0%}，平均 {d_var_avg:.0%}） |",
         "",
+        "### 2.3.1b 分任务成功率",
+        "",
+        "| 任务 | 规则·标准 | 规则·变体 | LLM·标准 | LLM·变体 |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for tid in sorted({r["task_id"] for r in vr_mock}):
+        ms = [r for r in vr_mock if r["task_id"] == tid and r["expression_type"] == "standard"]
+        mv = [r for r in vr_mock if r["task_id"] == tid and r["expression_type"] == "variant"]
+        ds = [r for r in vr_ds if r["task_id"] == tid and r["expression_type"] == "standard"]
+        dv = [r for r in vr_ds if r["task_id"] == tid and r["expression_type"] == "variant"]
+        label = ms[0]["expression"] if ms else tid
+        cat = ms[0].get("category", "") if ms else ""
+        lines.append(
+            f"| {tid}（{label}，{cat}） | "
+            f"{sum(1 for r in ms if float(r['success_rate']) == 1.0)}/{len(ms)} | "
+            f"{sum(1 for r in mv if float(r['success_rate']) == 1.0)}/{len(mv)} | "
+            f"{sum(1 for r in ds if float(r['success_rate']) == 1.0)}/{len(ds)} | "
+            f"{sum(1 for r in dv if float(r['success_rate']) == 1.0)}/{len(dv)} |"
+        )
+    lines += [
         "### 2.3.2 真实机器人系统级执行（RobotStudio + IRB120，rounds=3）",
         "",
         "| 规划器 | 基础任务 | 复杂任务 | 合计 |",
@@ -234,19 +249,22 @@ def agent_experiment():
         "",
         "| 维度 | 规则规划器 | LLM 规划器 |",
         "| --- | --- | --- |",
-        f"| 语言变体成功率 | 4%（1/24） | {d_all/len(vr_ds):.0%}（{d_all}/{len(vr_ds)} 全轮成功，平均成功率 {d_avg:.0%}） |",
+        f"| 语言变体成功率 | {m_var_ok}/{len(m_var)}（{m_var_ok/max(len(m_var),1):.0%}） | "
+        f"{d_var_ok}/{len(d_var)}（{d_var_ok/max(len(d_var),1):.0%}，平均 {d_var_avg:.0%}） |",
         "| 响应时间 | ~0.01s（本地规则匹配） | 1~5s（DeepSeek API） |",
         "| 失败模式 | 关键词不匹配 → 无法理解/动作不匹配 | 偶发空计划；语义等价但规格不符 |",
         "",
         "LLM 失败案例分析（语义合理但严格规格匹配未通过）：",
         "",
-        "- “报一下末端的坐标”→ 规划 `get_pose`（TCP 位姿）而非期望的 `get_position`"
-        "（关节），语义上更贴合“末端坐标”；",
-        "- “把机械臂转到工位A那边/挪到指定工位”→ 偶发规划 `linear_move` 而非"
-        " `joint_move`（直线插补到目标，同样可达）；",
-        f"- 结论：LLM 智能体显著提升自然语言变体理解能力（4%→{d_all/len(vr_ds):.0%}，平均 {d_avg:.0%}），"
-        " 在安全约束层保证下可完整执行到真实机器人；严格规格匹配率低于系统级成功率，"
-        " 体现了 LLM 规划的语义灵活性。",
+        "- “末端的坐标是多少 / 报一下机械臂末端的位置”→ 偶发规划 `get_position`"
+        "（关节角）而非 `get_pose`（TCP 位姿），语义相近但动作选择偏差；",
+        "- “到工位后看看机器人状态 / 机器人在工作区域待命”→ 只查询状态/未规划"
+        " 移动动作，未满足“先移动”的任务拆解；",
+        "- “查一下环境信息里A区的位置”→ 未使用 `memory_tool`（工具选择偏差）；",
+        "- 个别轮次空计划（LLM 波动，如记忆搬运类）。",
+        f"- 结论：LLM 智能体显著提升自然语言变体理解能力（{m_var_ok/max(len(m_var),1):.0%}→"
+        f"{d_var_ok/max(len(d_var),1):.0%}，平均 {d_var_avg:.0%}），在安全约束层保证下"
+        " 可完整执行到真实机器人；严格规格匹配率低于系统级成功率，体现了 LLM 规划的语义灵活性。",
     ]
     write("agent_experiment_results.md", lines)
 
@@ -541,22 +559,47 @@ def charts():
     # 图5：语言泛化对比（规则规划器 vs LLM 规划器，按意图）
     vr_mock = read_csv("task_sets_variant_mock.csv")
     vr_ds = read_csv("task_sets_variant_deepseek.csv")
-    intents = {
-        "var_home": "回到初始位置", "var_joint_move": "移动到指定位置",
-        "var_linear_move": "直线运动到目标点", "var_status": "读取机器人状态",
-        "var_memory_move": "记忆驱动搬运", "var_scan": "扫描工作台并报告",
-    }
+    tids = sorted({r["task_id"] for r in vr_mock})
+    labels = []
+    for tid in tids:
+        std = [r for r in vr_mock if r["task_id"] == tid and r["expression_type"] == "standard"]
+        labels.append(f"{tid} {std[0]['expression'][:8]}" if std else tid)
     fig, ax = plt.subplots(figsize=(9, 4.6))
-    labels = list(intents.values())
     m_rates = [
-        sum(1 for r in vr_mock if r["task_id"] == tid and float(r["success_rate"]) == 1.0)
-        / max(sum(1 for r in vr_mock if r["task_id"] == tid), 1)
-        for tid in intents
+        sum(
+            1
+            for r in vr_mock
+            if r["task_id"] == tid
+            and r["expression_type"] == "variant"
+            and float(r["success_rate"]) == 1.0
+        )
+        / max(
+            sum(
+                1
+                for r in vr_mock
+                if r["task_id"] == tid and r["expression_type"] == "variant"
+            ),
+            1,
+        )
+        for tid in tids
     ]
     d_rates = [
-        sum(1 for r in vr_ds if r["task_id"] == tid and float(r["success_rate"]) == 1.0)
-        / max(sum(1 for r in vr_ds if r["task_id"] == tid), 1)
-        for tid in intents
+        sum(
+            1
+            for r in vr_ds
+            if r["task_id"] == tid
+            and r["expression_type"] == "variant"
+            and float(r["success_rate"]) == 1.0
+        )
+        / max(
+            sum(
+                1
+                for r in vr_ds
+                if r["task_id"] == tid and r["expression_type"] == "variant"
+            ),
+            1,
+        )
+        for tid in tids
     ]
     x = range(len(labels))
     ax.bar([i - 0.18 for i in x], [r * 100 for r in m_rates], width=0.36,
@@ -567,7 +610,7 @@ def charts():
     ax.set_xticklabels(labels, rotation=18)
     ax.set_ylim(0, 110)
     ax.set_ylabel("语言变体成功率 (%)")
-    ax.set_title("语言泛化能力对比（24 条自然语言变体）")
+    ax.set_title("语言泛化能力对比（49 条自然语言变体，12 任务）")
     ax.legend()
     fig.tight_layout()
     fig.savefig(os.path.join(IMG_DIR, "thesis_planner_comparison.png"), dpi=150)

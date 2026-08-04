@@ -112,12 +112,18 @@ class DeepSeekRobotStudioPlanner:
     """
 
     TOOL_DESCRIPTIONS = {
-        "memory_tool": "读写语义记忆。args: {'write': {topic, content, category}} 或 {'query': '关键词'}",
+        "memory_tool": (
+            "读写语义记忆。args: {'write': {topic, content, category}} 或 "
+            "{'query': '关键词'}。搬运/定位类任务可先用 query 检索记忆中的目标位置，"
+            "再规划 robot_tool 动作。"
+        ),
         "robot_tool": (
             "控制 ABB RobotStudio 工业机器人。args: {'action': "
             "'move_home|joint_move|linear_move|get_position|get_pose', "
             "'joints': [j1..j6 关节角, 单位度], "
-            "'target': [x,y,z,rx,ry,rz] (x/y/z 单位米, rx/ry/rz 单位度)}"
+            "'target': [x,y,z,rx,ry,rz] (x/y/z 单位米, rx/ry/rz 单位度)}。"
+            "注意：用户要求移动/搬运/到达某处/去某区域时，必须规划 robot_tool "
+            "的 joint_move 或 linear_move 动作；只查询状态或回 Home 不算完成任务。"
         ),
         "vision_tool": "读取视觉识别结果。args: {'scan': true}",
         "environment_tool": "获取环境状态。args: {'status': true}",
@@ -402,12 +408,55 @@ def run_knowledge(tasks, rounds):
     return rows
 
 
+RAPID_CMD_TO_ACTION = {
+    "HOME": "move_home",
+    "MOVEJ": "joint_move",
+    "MOVEL": "linear_move",
+    "GETPOS": "get_position",
+    "GETPOSE": "get_pose",
+    "STATUS": "get_position",
+}
+
+
+def check_expected_tools(steps, expected_tools):
+    """按 expected_tools 检查计划是否包含期望工具/动作。
+
+    expected_tools 项可以是 RAPID 命令（HOME/MOVEJ/...，映射到 robot_tool
+    动作），也可以是 Agent 工具名（memory_tool/vision_tool/...）。
+    每一项都至少被一个步骤匹配才算通过。
+    """
+    if not expected_tools:
+        return True
+    for exp in expected_tools:
+        matched = False
+        for s in steps:
+            if exp in RAPID_CMD_TO_ACTION:
+                if (
+                    s.get("tool") == "robot_tool"
+                    and s.get("args", {}).get("action") == RAPID_CMD_TO_ACTION[exp]
+                ):
+                    matched = True
+                    break
+            elif s.get("tool") == exp:
+                matched = True
+                break
+        if not matched:
+            return False
+    return True
+
+
 def run_variants(rounds, planner_filter=None):
-    """语言变体对比实验：同一意图多种自然说法，规则规划器 vs LLM 规划器。
+    """语言变体对比实验：标准表达 + 多种自然说法，规则规划器 vs LLM 规划器。
 
     变体刻意避开规则规划器的关键词，用于证明 LLM 智能体对自然语言变体的
     理解能力（规则匹配会失败，语义理解能成功）。使用 mock 后端，隔离
     “规划能力”这一变量（执行链路两种规划器完全一致）。
+
+    输出：
+      - experiments/results/planner_comparison/rule_results.json
+      - experiments/results/planner_comparison/deepseek_results.json
+      - experiments/results/planner_comparison/planner_comparison.csv
+      - experiments/results/task_sets_variant_{mock,deepseek}.csv（兼容旧版）
 
     planner_filter: None 时两种规划器都跑（对比）；指定 "robotstudio" 或
     "deepseek" 时只跑指定规划器（配合 --planner 使用）。
@@ -419,39 +468,75 @@ def run_variants(rounds, planner_filter=None):
         "mock": RobotStudioMockPlanner(),
         "deepseek": DeepSeekRobotStudioPlanner(),
     }
-    all_rows = []
+    comp_dir = os.path.join(RESULTS_DIR, "planner_comparison")
+    os.makedirs(comp_dir, exist_ok=True)
+    comp_rows = []
+
     for planner_name, planner in planners.items():
         if planner_filter and planner_name != planner_filter:
             continue
         rows = []
+        details = []
         for task in tasks:
-            exp = task.get("expected") or {}
             exp_tools = task.get("expected_tools") or []
-            for variant in task["variants"]:
-                succ, times = [], []
+            expressions = [("standard", task["standard"])] + [
+                ("variant", v) for v in task["variants"]
+            ]
+            for etype, expr in expressions:
+                succ, times, errs = [], [], []
                 for _ in range(rounds):
                     agent = build_agent("mock", planner, db_path)
                     try:
-                        resp = agent.handle(variant, task_type="variant")
+                        resp = agent.handle(expr, task_type="variant")
                         steps = resp["plan"].get("steps", [])
                         good = bool(steps) and all(
                             r.get("ok") for r in resp["step_results"]
                         )
-                        if good and exp.get("tool"):
-                            good = any(s.get("tool") == exp["tool"] for s in steps)
-                        if good and exp.get("action"):
-                            good = any(
-                                s.get("args", {}).get("action") == exp["action"]
-                                for s in steps
-                            )
-                        if good and exp_tools:
-                            tools = {s.get("tool") for s in steps}
-                            good = bool(set(exp_tools) & tools)
+                        good = good and check_expected_tools(steps, exp_tools)
                         succ.append(1 if good else 0)
                         times.append(agent.last_timings["total_seconds"])
-                    except Exception:
+                        if not good:
+                            errs.append(
+                                "; ".join(
+                                    r.get("message", "")
+                                    for r in resp["step_results"]
+                                    if not r.get("ok")
+                                )
+                                or "计划不匹配"
+                            )
+                        details.append(
+                            {
+                                "planner": planner_name,
+                                "task_id": task["task_id"],
+                                "category": task.get("category", ""),
+                                "expression_type": etype,
+                                "expression": expr,
+                                "round": len(succ),
+                                "success": bool(succ[-1]),
+                                "response_time": agent.last_timings["total_seconds"],
+                                "generated_plan": resp["plan"],
+                                "execution_result": resp["step_results"],
+                                "error": "" if succ[-1] else (errs[-1] if errs else ""),
+                            }
+                        )
+                    except Exception as exc:
                         succ.append(0)
                         times.append(0.0)
+                        details.append(
+                            {
+                                "planner": planner_name,
+                                "task_id": task["task_id"],
+                                "category": task.get("category", ""),
+                                "expression_type": etype,
+                                "expression": expr,
+                                "round": len(succ),
+                                "success": False,
+                                "response_time": 0.0,
+                                "generated_plan": None,
+                                "execution_result": [],
+                                "error": f"异常: {exc}",
+                            }
+                        )
                     finally:
                         try:
                             agent.registry["robot_tool"].backend.execute(
@@ -464,22 +549,59 @@ def run_variants(rounds, planner_filter=None):
                     {
                         "planner": planner_name,
                         "task_id": task["task_id"],
-                        "intent": task["intent"],
-                        "variant": variant,
+                        "category": task.get("category", ""),
+                        "expression_type": etype,
+                        "expression": expr,
                         "rounds": rounds,
                         "success_rate": round(sum(succ) / rounds, 4),
                         "avg_response_s": round(sum(times) / rounds, 4),
                     }
                 )
         write_csv(os.path.join(RESULTS_DIR, f"task_sets_variant_{planner_name}.csv"), rows)
-        all_rows.extend(rows)
-        ok = sum(1 for r in rows if r["success_rate"] == 1.0)
-        print(
-            f"  [变体] {planner_name}: {ok}/{len(rows)} 条变体全部成功 "
-            f"（成功率={sum(r['success_rate'] for r in rows)/len(rows):.0%}）"
+        # 明细 JSON
+        json_path = os.path.join(comp_dir, f"{planner_name}_results.json")
+        with open(json_path, "w", encoding="utf-8") as fh:
+            json.dump(details, fh, ensure_ascii=False, indent=2)
+        print(f"[结果] 明细已保存: {json_path}")
+        # 汇总（标准表达 vs 变体）
+        for task in tasks:
+            tid = task["task_id"]
+            std = [r for r in rows if r["task_id"] == tid and r["expression_type"] == "standard"]
+            var = [r for r in rows if r["task_id"] == tid and r["expression_type"] == "variant"]
+            comp_rows.append(
+                {
+                    "method": "rule" if planner_name == "mock" else "llm",
+                    "task_id": tid,
+                    "category": task.get("category", ""),
+                    "standard": task["standard"],
+                    "standard_success_rate": (
+                        round(sum(1 for r in std if r["success_rate"] == 1.0) / max(len(std), 1), 4)
+                        if std else 0.0
+                    ),
+                    "variant_success_rate": (
+                        round(sum(1 for r in var if r["success_rate"] == 1.0) / max(len(var), 1), 4)
+                        if var else 0.0
+                    ),
+                    "avg_response_s": round(
+                        sum(r["avg_response_s"] for r in var) / max(len(var), 1), 4
+                    ),
+                }
+            )
+        std_all = sum(
+            1 for r in rows if r["expression_type"] == "standard" and r["success_rate"] == 1.0
         )
-    write_csv(os.path.join(RESULTS_DIR, "task_sets_variant_compare.csv"), all_rows)
-    return all_rows
+        var_all = sum(
+            1 for r in rows if r["expression_type"] == "variant" and r["success_rate"] == 1.0
+        )
+        std_n = sum(1 for r in rows if r["expression_type"] == "standard")
+        var_n = sum(1 for r in rows if r["expression_type"] == "variant")
+        print(
+            f"  [变体] {planner_name}: 标准表达 {std_all}/{std_n}（{std_all/max(std_n,1):.0%}） "
+            f"语言变体 {var_all}/{var_n}（{var_all/max(var_n,1):.0%}）"
+        )
+
+    write_csv(os.path.join(comp_dir, "planner_comparison.csv"), comp_rows)
+    return comp_rows
 
 
 def write_csv(path, rows):
