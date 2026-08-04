@@ -4,7 +4,7 @@ MODULE socket_server
     VAR socketdev server_socket;
     VAR string received_string;
     VAR num joint_angles{6};
-    VAR robtarget pose_target := [[0,0,0],[1,0,0,0],[0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    VAR robtarget pose_target := [[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     VAR jointtarget current_jt;
 
     PROC socket_main()
