@@ -186,13 +186,14 @@ MODULE socket_server
             ! all-zero orientation: keep current tool orientation (CRobT),
             ! avoid wrist singularity on pure position moves
             pose_target := CRobT();
-            pose_target.trans.x := vals{1};
-            pose_target.trans.y := vals{2};
-            pose_target.trans.z := vals{3};
+            ! protocol uses meters, RAPID robtarget.trans uses millimeters
+            pose_target.trans.x := vals{1} * 1000;
+            pose_target.trans.y := vals{2} * 1000;
+            pose_target.trans.z := vals{3} * 1000;
         ELSE
-            pose_target.trans.x := vals{1};
-            pose_target.trans.y := vals{2};
-            pose_target.trans.z := vals{3};
+            pose_target.trans.x := vals{1} * 1000;
+            pose_target.trans.y := vals{2} * 1000;
+            pose_target.trans.z := vals{3} * 1000;
             pose_target.rot := OrientZYX(vals{6}, vals{5}, vals{4});
         ENDIF
         RETURN TRUE;
@@ -215,9 +216,10 @@ MODULE socket_server
         VAR robtarget p;
         VAR string s;
         p := CRobT();
-        s := NumToStr(p.trans.x,3) + "," +
-             NumToStr(p.trans.y,3) + "," +
-             NumToStr(p.trans.z,3) + "," +
+        ! report in meters to match the MOVEL protocol
+        s := NumToStr(p.trans.x/1000,4) + "," +
+             NumToStr(p.trans.y/1000,4) + "," +
+             NumToStr(p.trans.z/1000,4) + "," +
              NumToStr(EulerZYX(\X, p.rot),2) + "," +
              NumToStr(EulerZYX(\Y, p.rot),2) + "," +
              NumToStr(EulerZYX(\Z, p.rot),2);
