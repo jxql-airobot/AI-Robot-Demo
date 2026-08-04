@@ -101,6 +101,19 @@ def make_db(seeds, tasks):
     return db_path
 
 
+def collect_seeds(tasks):
+    """收集任务中的预置记忆（兼容 memory / seed_memory 两种字段名）"""
+    seeds = []
+    for t in tasks:
+        seed = t.get("seed_memory") or t.get("memory")
+        if seed:
+            if isinstance(seed, list):
+                seeds.extend(seed)
+            else:
+                seeds.append(seed)
+    return seeds
+
+
 def run_tasks(tasks, agent_factory, rounds):
     """通用运行器：返回每任务的 (success_rate, avg_total, avg_plan, avg_exec, recall_rate, failures)"""
     out = []
@@ -201,7 +214,7 @@ def experiment1(rounds):
 def experiment2(rounds):
     # 只跑 RAG 相关任务（记忆/语义查询类），用各自任务集的规划器
     tasks = [t for t in load_tasks(TASK_SET) if t.get("expected_recall") or "记忆" in t.get("category", "")]
-    seeds = [t["seed_memory"] for t in tasks if t.get("seed_memory")]
+    seeds = collect_seeds(tasks)
     db_path = make_db(seeds, tasks)
 
     rows = []
