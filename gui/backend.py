@@ -4,10 +4,8 @@ backend.py — GUI 后端抽象 (V5.1)
 ================================
 统一的后端接口，让 Streamlit 界面不关心底层是 ROS2 还是本地模拟：
   - AgentBackend：接口定义
-  - Ros2Backend：连接 ROS2 仿真系统（主模式，第二步实现）
+  - Ros2Backend：连接 ROS2 仿真系统（主模式）
   - LocalBackend：直接复用 V1/V2 的 llm/memory/robot（规划中，后续实现）
-
-【骨架阶段】第二步实现 Ros2Backend。
 """
 
 import os
@@ -19,6 +17,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 for p in (GUI_DIR, REPO_ROOT):
     if p not in sys.path:
         sys.path.insert(0, p)
+
+from config import ROS2_DB_PATH  # noqa: E402
 
 
 class AgentBackend:
@@ -61,8 +61,39 @@ class Ros2Backend(AgentBackend):
     name = "ROS2"
 
     def __init__(self):
-        # TODO(第二步): 创建 Ros2Client + 记忆读取
-        pass
+        # 延迟导入：rclpy 只在 source 过 ROS2 的环境可用；
+        # memory.py 复用仓库根目录的 V2 记忆系统（不修改原文件）
+        from ros2_client import Ros2Client
+        from memory import MemoryStore
+
+        self.client = Ros2Client()
+        self.memory = MemoryStore(ROS2_DB_PATH)
+
+    def send_task(self, text):
+        self.client.send_task(text)
+
+    def get_status(self):
+        return self.client.get_status()
+
+    def get_vision(self):
+        return self.client.get_vision()
+
+    def get_odom(self):
+        return self.client.get_odom()
+
+    def list_memories(self):
+        """查看全部记忆（V5.1 只做查看和查询，不做删除）"""
+        return self.memory.all_memories()
+
+    def search_memories(self, query):
+        """按关键词查询记忆"""
+        query = (query or "").strip()
+        if not query:
+            return self.memory.all_memories()
+        return self.memory.search(query, limit=50)
+
+    def close(self):
+        self.client.close()
 
 
 class LocalBackend(AgentBackend):
