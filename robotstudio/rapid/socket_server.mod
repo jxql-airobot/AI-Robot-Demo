@@ -15,8 +15,18 @@ MODULE socket_server
             SocketAccept server_socket, client_socket;
             TPWrite "Client connected";
             HandleClient;
-            SocketClose client_socket;
+            CloseClient;
         ENDWHILE
+    ERROR
+        IF ERRNO = ERR_SOCK_TIMEOUT THEN
+            RETRY;
+        ENDIF
+    ENDPROC
+
+    PROC CloseClient()
+        SocketClose client_socket;
+    ERROR
+        RETURN;
     ENDPROC
 
     PROC HandleClient()

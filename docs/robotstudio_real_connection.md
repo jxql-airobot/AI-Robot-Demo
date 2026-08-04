@@ -99,6 +99,9 @@ SocketReceive / SocketSend）依赖控制器选项 616-1 PC Interface（Socket M
   的 ERROR 段捕获后 `RETURN`；
 - 复用客户端套接字：`SocketAccept` 报 **41600**（客户端套接字已在用），
   需要在每个会话结束后 `SocketClose client_socket;`；
+- 等待超时：`SocketAccept` 默认 60 秒超时报 **41581**，由 `socket_main` 的
+  ERROR 段 `RETRY` 继续等待，服务端不会因无人连接而停止；
+- `SocketClose` 独立为 `CloseClient` 过程，关闭出错时安全返回；
 - 服务端主循环：`WHILE TRUE` Accept -> 处理 -> 关闭，支持连续多客户端。
 
 ## 9. Python 测试
@@ -135,6 +138,9 @@ python robotstudio/manual_test_client.py --real
 多客户端验证：client1 连接执行 4 条命令后断开，服务端不重启，client2 再次连接
 执行 4 条命令成功，关节状态跨连接保持（client2 GETPOS 正确读到 client1 的 MOVEJ 结果）。
 
+超时存活验证：client1 执行完毕后，服务端空等 70 秒（超过 `SocketAccept`
+默认 60 秒超时），client2 再次连接仍然成功执行命令，确认服务端不会因等待超时停止。
+
 ## 11. 已知限制与后续计划
 
 - `MOVEL` 目前只返回 OK，未产生真实直线运动（待实现 MoveL + 位姿解析）；
@@ -148,6 +154,7 @@ python robotstudio/manual_test_client.py --real
 | --- | --- | --- |
 | 161 选项缺失，SocketCreate 需要 PC | 系统缺 616-1 PC Interface | 系统选项 -> 通信 -> 勾选 616-1 |
 | 41595 套接字错误 | 客户端断开 | 已由 ERROR 段处理，无需操作 |
+| 41581 套接字错误 | SocketAccept 等待超时（默认 60s） | 已由 ERROR 段 RETRY 继续等待 |
 | 41600 套接字错误 | 客户端套接字未关闭 | 会话结束 SocketClose（已实现） |
 | 41603 套接字错误 | socket 已创建未关闭 | 重新加载模块或重置程序 |
 | 语法错误(1,1) 预期值 module | BOM/文件头注释 | 文件以 MODULE 开头、无 BOM |
