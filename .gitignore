@@ -39,3 +39,7 @@ cache/
 
 # 实验阶段状态交接（仅本地，不上传）
 docs/thesis/experiment_status.md
+
+# 论文 Word 草稿（本地生成，不上传）
+docs/thesis/AI-Robot-Demo_论文草稿.docx
+docs/thesis/_cover_logo.jpeg
