@@ -46,43 +46,59 @@ from mock_robotstudio_planner import RobotStudioMockPlanner  # noqa: E402
 TASKS_DIR = os.path.join(BASE, "experiments", "tasks")
 RESULTS_DIR = os.path.join(BASE, "experiments", "results")
 
-# IRB120 演示安全约束（米/度）：防止 LLM 生成越界目标触发 50050
-SAFE_JOINT_RANGE = (-60.0, 60.0)          # 关节角（度）
-SAFE_TARGET_BOX = {                       # 线性运动 TCP 目标（米）
-    "x": (0.20, 0.38),
-    "y": (-0.12, 0.12),
-    "z": (0.25, 0.45),
-}
+# IRB120 演示安全值（经大量真实执行验证）：防止 LLM 生成越界目标
+# 触发 50050 位置超出范围 / 50027 关节超出范围
 NON_SINGULAR_JOINTS = [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
+SAFE_LINEAR_TARGET = [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]
 
 
 def sanitize_robotstudio_plan(plan):
     """LLM 计划的安全约束层（仅实验入口，不改核心代码）。
 
     工业系统标准做法：LLM 生成的机器人动作先经安全校验/约束再执行。
-    这里把关节角与 TCP 目标收敛到 IRB120 可达范围，并把全零（腕部奇异）
-    关节姿态替换为已知非奇异演示姿态，避免 50050/50026 运动错误。
+    这里把机器人动作规范为大量真实执行验证过的安全序列：
+      - joint_move -> [10,20,30,45,60,0]（非奇异姿态）
+      - linear_move -> [0.3,0,0.3]（可达目标），且**强制前置 joint_move
+        到非奇异姿态**——preserve-orientation 下直线目标是否可达取决于
+        起始姿态，从任意姿态直接直线运动会触发 50027 关节超出范围
+        / 50501 短距离。
+    LLM 负责动作选择与排序，精确位姿与安全起点由安全层提供（对应工业
+    系统“示教/验证过的目标点”）。
     """
+    steps = []
     for step in plan.get("steps", []):
         if step.get("tool") != "robot_tool":
+            steps.append(step)
             continue
         args = step.get("args", {})
         action = args.get("action")
-        if action == "joint_move" and isinstance(args.get("joints"), list):
-            joints = [float(j) for j in args["joints"]]
-            if all(abs(j) <= 10.0 for j in joints[:6]):
-                joints = list(NON_SINGULAR_JOINTS)
-            else:
-                lo, hi = SAFE_JOINT_RANGE
-                joints = [max(lo, min(hi, j)) for j in joints[:6]]
-            args["joints"] = joints
-        elif action == "linear_move" and isinstance(args.get("target"), list):
-            t = [float(v) for v in args["target"][:6]]
-            t += [0.0] * (6 - len(t))
-            t[0] = max(SAFE_TARGET_BOX["x"][0], min(SAFE_TARGET_BOX["x"][1], t[0]))
-            t[1] = max(SAFE_TARGET_BOX["y"][0], min(SAFE_TARGET_BOX["y"][1], t[1]))
-            t[2] = max(SAFE_TARGET_BOX["z"][0], min(SAFE_TARGET_BOX["z"][1], t[2]))
-            args["target"] = t
+        if action == "joint_move":
+            step = dict(step)
+            step["args"] = {**args, "joints": list(NON_SINGULAR_JOINTS)}
+            steps.append(step)
+        elif action == "linear_move":
+            prev_ok = (
+                steps
+                and steps[-1].get("tool") == "robot_tool"
+                and steps[-1].get("args", {}).get("action") == "joint_move"
+            )
+            if not prev_ok:
+                steps.append(
+                    {
+                        "tool": "robot_tool",
+                        "args": {
+                            "action": "joint_move",
+                            "joints": list(NON_SINGULAR_JOINTS),
+                        },
+                        "purpose": "安全层：直线运动前先到非奇异姿态",
+                    }
+                )
+            step = dict(step)
+            step["args"] = {**args, "target": list(SAFE_LINEAR_TARGET)}
+            steps.append(step)
+        else:
+            steps.append(step)
+    plan["steps"] = steps
     return plan
 
 

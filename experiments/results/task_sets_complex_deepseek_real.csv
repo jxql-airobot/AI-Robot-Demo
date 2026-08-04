@@ -1,0 +1,6 @@
+﻿task_id,task_type,input,evaluation,rounds,success_rate,avg_response_s,avg_plan_s,avg_exec_s,failures
+task_101,complex_planning,完成一个零件搬运流程,plan_and_execution,3,1.0,7.6403,4.0467,3.5937,
+task_102,complex_planning,扫描工作台并报告所有零件位置,plan_and_execution,3,1.0,1.5103,1.4377,0.0727,
+task_103,rag_planning,把之前看到的红色零件移动到右侧区域,recall_and_execution,3,1.0,5.3283,2.802,2.5263,
+task_104,complex_planning,让机器人移动到工作区域并读取当前状态,plan_and_execution,3,1.0,2.958,1.9423,1.0157,
+task_105,planning,让机器人移动到工作区域,execution_success,3,1.0,3.474,2.3177,1.1563,

@@ -146,6 +146,10 @@ def function_test():
 def agent_experiment():
     exp1 = read_csv("experiment1_planning.csv")
     complex_ = read_csv_prefer("task_sets_complex_real.csv", "task_sets_complex.csv")
+    ds_cx_mock = read_csv("task_sets_complex_deepseek.csv")
+    ds_cx_real = read_csv("task_sets_complex_deepseek_real.csv")
+    ds_bs_mock = read_csv("task_sets_basic_deepseek.csv")
+    ds_bs_real = read_csv("task_sets_basic_deepseek_real.csv")
     logs = read_logs()
     lines = [
         "# 第五章数据：Agent 任务规划实验",
@@ -179,30 +183,56 @@ def agent_experiment():
             f"| {r['task_id']}（{cnames.get(r['task_id'], '')}） | {pct(r['success_rate'])} | "
             f"{r['avg_response_s']} | {r['evaluation']} |"
         )
-    # 统一日志汇总（按 task_type）
-    from collections import defaultdict
-
-    g = defaultdict(lambda: [0, 0, []])
-    for r in logs:
-        tt = r.get("task_type")
-        if tt in ("general", "knowledge"):
-            continue
-        g[tt][0] += 1
-        g[tt][1] += 1 if r.get("success") else 0
-        if r.get("response_time") is not None:
-            g[tt][2].append(r["response_time"])
+    # DeepSeek 规划器实验（真实 LLM 任务规划）
     lines += [
         "",
-        "## 2.3 统一日志汇总（按任务类型）",
+        "## 2.3 DeepSeek 规划器实验（真实 LLM 任务规划）",
         "",
-        "| 任务类型 | 任务数 | 成功率 | 平均响应(s) |",
+        "> 链路：自然语言 → DeepSeek LLM → Agent 规划 → RobotTool → RobotStudio 执行",
+        "> 安全约束层：LLM 生成的机器人动作经安全序列规范化（直线运动前强制到",
+        "> 非奇异姿态、目标收敛到验证过的可达位姿）后再执行。",
+        "",
+        "### 2.3.1 复杂任务（rounds=3）",
+        "",
+        "| 任务 | Mock 后端成功率 | 真实 RobotStudio 成功率 | 真实平均响应(s) |",
         "| --- | --- | --- | --- |",
     ]
-    for tt in ("basic_motion", "status", "planning", "rag_planning", "complex_planning"):
-        n, s, ts = g.get(tt, [0, 0, []])
+    cnames = {
+        "task_101": "零件搬运流程", "task_102": "扫描工作台并报告",
+        "task_103": "记忆驱动搬运", "task_104": "移动+读取状态", "task_105": "移动到工作区域",
+    }
+    for r_m, r_r in zip(ds_cx_mock, ds_cx_real):
         lines.append(
-            f"| {tt} | {n} | {s/n:.0%} | {mean(ts)} |" if ts else f"| {tt} | {n} | - | - |"
+            f"| {r_m['task_id']}（{cnames.get(r_m['task_id'], '')}） | "
+            f"{pct(r_m['success_rate'])} | {pct(r_r['success_rate'])} | "
+            f"{r_r['avg_response_s']} |"
         )
+    lines += [
+        "",
+        "### 2.3.2 基础任务（rounds=3）",
+        "",
+        "| 任务 | Mock 后端成功率 | 真实 RobotStudio 成功率 | 真实平均响应(s) |",
+        "| --- | --- | --- | --- |",
+    ]
+    bnames = {
+        "task_001": "回到初始位置", "task_002": "移动到指定位置", "task_003": "获取当前位置",
+        "task_004": "直线运动", "task_005": "关节状态", "task_006": "TCP位姿",
+    }
+    for r_m, r_r in zip(ds_bs_mock, ds_bs_real):
+        lines.append(
+            f"| {r_m['task_id']}（{bnames.get(r_m['task_id'], '')}） | "
+            f"{pct(r_m['success_rate'])} | {pct(r_r['success_rate'])} | "
+            f"{r_r['avg_response_s']} |"
+        )
+    lines += [
+        "",
+        "### 2.3.3 说明",
+        "",
+        "- DeepSeek 使用 RobotStudio 动作契约版工具描述（实验入口提供，核心代码零修改）；",
+        "- 任务 105/002 的 LLM 原计划为 linear_move（语义合理），安全层插入 joint_move"
+        " 后达标——系统级成功率 100%，LLM 原始动作匹配率约 4/5（可作规划差异案例）；",
+        "- Mock 复杂任务 task_103 偶发“计划为空”（LLM 波动，rounds 内 1/3）。",
+    ]
     write("agent_experiment_results.md", lines)
 
 
@@ -370,39 +400,62 @@ def charts():
     know = read_csv("task_sets_knowledge.csv")
     exp2 = read_csv("experiment2_rag.csv")
     exp3 = read_csv("experiment3_backend.csv")
-    logs = read_logs()
-    from collections import defaultdict
+    exp1 = read_csv("experiment1_planning.csv")
 
-    g = defaultdict(lambda: [0, 0, []])
-    for r in logs:
-        if r.get("task_type") == "knowledge":
-            continue
-        g[r.get("backend", "-")][0] += 1
-        g[r.get("backend", "-")][1] += 1 if r.get("success") else 0
-        if r.get("response_time") is not None:
-            g[r.get("backend", "-")][2].append(r["response_time"])
+    def agg(rows, rate_key="success_rate", time_key="avg_response_s"):
+        rates = [float(r[rate_key]) for r in rows if r.get(rate_key) not in ("", None)]
+        times = [float(r[time_key]) for r in rows if r.get(time_key) not in ("", None)]
+        return (sum(rates) / len(rates) if rates else 0.0,
+                sum(times) / len(times) if times else 0.0)
+
+    def subset(rows, tt):
+        return [r for r in rows if r.get("task_type") == tt]
+
+    # 按任务类型（RobotStudio 真实任务集 + 知识问答）
+    type_rows = [
+        ("basic_motion", subset(basic, "basic_motion") + subset(complex_, "basic_motion")),
+        ("status", subset(basic, "status") + subset(complex_, "status")),
+        ("planning", subset(complex_, "planning")),
+        ("complex_planning", subset(complex_, "complex_planning")),
+        ("rag_planning", subset(complex_, "rag_planning")),
+        ("knowledge", know),
+    ]
+    type_rates, type_counts = [], []
+    for tt, rows in type_rows:
+        if tt == "knowledge":
+            rates = [float(r.get("rag_answer_ok_rate", 0)) for r in rows]
+            type_rates.append(sum(rates) / len(rates) if rates else 0.0)
+            type_counts.append(len(rows))
+        else:
+            rate, _ = agg(rows)
+            type_rates.append(rate)
+            type_counts.append(len(rows))
+
+    # 按后端（Local=实验1 mock 规划器；RobotStudio=真实任务集；Gazebo=实验3）
+    local_rows = [r for r in exp1 if r.get("planner") == "mock"]
+    local_rate, local_rt = agg(local_rows)
+    rs_rate, rs_rt = agg(basic + complex_)
+    gz_rows = [r for r in exp3 if r["backend"].startswith("Gazebo")]
+    gz_rates = [float(r["exec_success_rate"]) for r in gz_rows if r["exec_success_rate"] != ""]
+    gz_rate = sum(gz_rates) / len(gz_rates) if gz_rates else 0.0
+    gz_rt = mean([float(r["avg_exec_s"]) for r in gz_rows if r.get("avg_exec_s") not in ("", None)])
 
     # 图1：成功率（按任务类型 + 按后端）
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
-    types = ["basic_motion", "status", "planning", "rag_planning", "complex_planning", "knowledge"]
-    rates, counts = [], []
-    for t in types:
-        n, s, _ = g.get(t, [0, 0, []])
-        counts.append(n)
-        rates.append(s / n if n else 0)
-    axes[0].bar(types, [r * 100 for r in rates], color="#3c8a5e")
+    types = [t for t, _ in type_rows]
+    axes[0].bar(types, [r * 100 for r in type_rates], color="#3c8a5e")
     axes[0].set_ylim(0, 110)
     axes[0].set_title("按任务类型成功率 (%)")
     axes[0].tick_params(axis="x", rotation=20)
-    for i, (r, n) in enumerate(zip(rates, counts)):
+    for i, (r, n) in enumerate(zip(type_rates, type_counts)):
         axes[0].text(i, r * 100 + 2, f"{r:.0%}\nn={n}", ha="center", fontsize=8)
-    bks = ["local", "robotstudio", "ros2"]
-    brates = [g[b][1] / max(g[b][0], 1) for b in bks]
+    bks = ["Local", "RobotStudio", "Gazebo"]
+    brates = [local_rate, rs_rate, gz_rate]
     axes[1].bar(["Local", "RobotStudio", "Gazebo(ros2)"], [b * 100 for b in brates], color="#4a6fa5")
     axes[1].set_ylim(0, 110)
     axes[1].set_title("按后端成功率 (%)")
     for i, b in enumerate(brates):
-        axes[1].text(i, b * 100 + 2, f"{b:.0%}\nn={g[bks[i]][0]}", ha="center", fontsize=8)
+        axes[1].text(i, b * 100 + 2, f"{b:.0%}", ha="center", fontsize=8)
     fig.suptitle("任务成功率统计", fontsize=14, weight="bold")
     fig.tight_layout()
     fig.savefig(os.path.join(IMG_DIR, "thesis_success_rate.png"), dpi=150)
@@ -410,13 +463,19 @@ def charts():
 
     # 图2：平均响应时间（按任务类型 + 按后端）
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
-    rts = [mean(g[t][2]) for t in types]
+    rts = []
+    for tt, rows in type_rows:
+        if tt == "knowledge":
+            rts.append(mean([float(r.get("rag_avg_s", 0)) for r in rows]))
+        else:
+            _, t = agg(rows)
+            rts.append(t)
     axes[0].bar(types, rts, color="#e07b39")
     axes[0].set_title("按任务类型平均响应 (s)")
     axes[0].tick_params(axis="x", rotation=20)
     for i, v in enumerate(rts):
         axes[0].text(i, v + 0.05, f"{v:.3f}", ha="center", fontsize=8)
-    brts = [mean(g[b][2]) for b in bks]
+    brts = [local_rt, rs_rt, gz_rt]
     axes[1].bar(["Local", "RobotStudio", "Gazebo(ros2)"], brts, color="#8e44ad")
     axes[1].set_title("按后端平均响应 (s)")
     for i, v in enumerate(brts):

@@ -1,0 +1,7 @@
+﻿task_id,task_type,input,evaluation,rounds,success_rate,avg_response_s,avg_plan_s,avg_exec_s,failures
+task_001,basic_motion,让机器人回到初始位置,execution_success,3,1.0,1.661,1.4683,0.1927,
+task_002,basic_motion,移动机器人末端到指定位置A,execution_success,3,1.0,3.4377,2.308,1.1297,
+task_003,status,获取当前机器人位置,execution_success,3,1.0,1.3433,1.156,0.1873,
+task_004,basic_motion,执行直线运动到目标点,execution_success,3,1.0,2.927,1.9843,0.9427,
+task_005,status,查询机器人当前关节状态,execution_success,3,1.0,1.5,1.4217,0.0783,
+task_006,status,读取机器人当前TCP位姿,execution_success,3,1.0,1.6667,1.4583,0.2083,
