@@ -1,6 +1,6 @@
 # AI Robot Agent 层设计 (V5.2)
 
-> 状态：第三步完成（GUI 已接入 Agent，可解释 Plan 展示），待最终测试与打 tag。
+> 状态：V5.2 完成（tag: v5.2-agent）。
 
 ## 1. 架构设计
 
