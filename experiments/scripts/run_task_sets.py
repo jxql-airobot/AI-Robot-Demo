@@ -46,6 +46,82 @@ from mock_robotstudio_planner import RobotStudioMockPlanner  # noqa: E402
 TASKS_DIR = os.path.join(BASE, "experiments", "tasks")
 RESULTS_DIR = os.path.join(BASE, "experiments", "results")
 
+# IRB120 演示安全约束（米/度）：防止 LLM 生成越界目标触发 50050
+SAFE_JOINT_RANGE = (-60.0, 60.0)          # 关节角（度）
+SAFE_TARGET_BOX = {                       # 线性运动 TCP 目标（米）
+    "x": (0.20, 0.38),
+    "y": (-0.12, 0.12),
+    "z": (0.25, 0.45),
+}
+NON_SINGULAR_JOINTS = [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
+
+
+def sanitize_robotstudio_plan(plan):
+    """LLM 计划的安全约束层（仅实验入口，不改核心代码）。
+
+    工业系统标准做法：LLM 生成的机器人动作先经安全校验/约束再执行。
+    这里把关节角与 TCP 目标收敛到 IRB120 可达范围，并把全零（腕部奇异）
+    关节姿态替换为已知非奇异演示姿态，避免 50050/50026 运动错误。
+    """
+    for step in plan.get("steps", []):
+        if step.get("tool") != "robot_tool":
+            continue
+        args = step.get("args", {})
+        action = args.get("action")
+        if action == "joint_move" and isinstance(args.get("joints"), list):
+            joints = [float(j) for j in args["joints"]]
+            if all(abs(j) <= 10.0 for j in joints[:6]):
+                joints = list(NON_SINGULAR_JOINTS)
+            else:
+                lo, hi = SAFE_JOINT_RANGE
+                joints = [max(lo, min(hi, j)) for j in joints[:6]]
+            args["joints"] = joints
+        elif action == "linear_move" and isinstance(args.get("target"), list):
+            t = [float(v) for v in args["target"][:6]]
+            t += [0.0] * (6 - len(t))
+            t[0] = max(SAFE_TARGET_BOX["x"][0], min(SAFE_TARGET_BOX["x"][1], t[0]))
+            t[1] = max(SAFE_TARGET_BOX["y"][0], min(SAFE_TARGET_BOX["y"][1], t[1]))
+            t[2] = max(SAFE_TARGET_BOX["z"][0], min(SAFE_TARGET_BOX["z"][1], t[2]))
+            args["target"] = t
+    return plan
+
+
+class DeepSeekRobotStudioPlanner:
+    """RobotStudio 动作契约版 DeepSeek 规划器（仅实验入口使用）
+
+    核心代码零修改：把 robot_tool 的工具描述替换为 RobotStudio 后端真实
+    支持的动作（move_home/joint_move/linear_move/get_position/get_pose），
+    让 DeepSeek 能规划出可执行的动作契约；生成结果经安全约束层
+    （sanitize_robotstudio_plan）收敛到 IRB120 可达范围。
+    """
+
+    TOOL_DESCRIPTIONS = {
+        "memory_tool": "读写语义记忆。args: {'write': {topic, content, category}} 或 {'query': '关键词'}",
+        "robot_tool": (
+            "控制 ABB RobotStudio 工业机器人。args: {'action': "
+            "'move_home|joint_move|linear_move|get_position|get_pose', "
+            "'joints': [j1..j6 关节角, 单位度], "
+            "'target': [x,y,z,rx,ry,rz] (x/y/z 单位米, rx/ry/rz 单位度)}"
+        ),
+        "vision_tool": "读取视觉识别结果。args: {'scan': true}",
+        "environment_tool": "获取环境状态。args: {'status': true}",
+    }
+
+    def __init__(self):
+        from types import SimpleNamespace
+
+        from agent.planner import DeepSeekPlanPlanner
+
+        registry = {
+            name: SimpleNamespace(description=desc)
+            for name, desc in self.TOOL_DESCRIPTIONS.items()
+        }
+        self._planner = DeepSeekPlanPlanner(registry)
+
+    def plan(self, task, context, memory_text=""):
+        plan = self._planner.plan(task, context, memory_text)
+        return sanitize_robotstudio_plan(plan)
+
 
 def load_tasks(name):
     path = os.path.join(TASKS_DIR, f"{name}_tasks.json")
@@ -95,6 +171,15 @@ def build_agent(backend, planner, db_path, real=False):
     return Agent(backend="robotstudio", db_path=db_path, planner=planner)
 
 
+def make_planner(planner_name, backend):
+    """按参数构造规划器：robotstudio -> 确定性；deepseek -> LLM（RobotStudio 契约版）"""
+    if planner_name == "robotstudio":
+        return RobotStudioMockPlanner()
+    if planner_name == "deepseek":
+        return DeepSeekRobotStudioPlanner() if backend in ("mock", "real") else None
+    return None
+
+
 def check_basic_complex(task, resp, agent):
     """按 evaluation 字段评测基础/复杂任务，返回 (ok, reason)"""
     plan = resp["plan"]
@@ -125,10 +210,10 @@ def check_basic_complex(task, resp, agent):
 
 
 def run_basic_complex(name, tasks, backend, planner_name, rounds):
-    """运行基础/复杂任务集"""
+    """运行基础/复杂任务集（每轮任务后自动 HOME 复位，保证测试起点/终点干净）"""
     seeds = collect_seeds(tasks)
     db_path = make_db(seeds)
-    planner = RobotStudioMockPlanner() if planner_name == "robotstudio" else None
+    planner = make_planner(planner_name, backend)
 
     rows = []
     for task in tasks:
@@ -141,6 +226,11 @@ def run_basic_complex(name, tasks, backend, planner_name, rounds):
             except Exception as exc:
                 ok, reason = False, f"异常: {exc}"
             finally:
+                # 复位：每轮任务后回到 Home，避免机器人停在任意姿态
+                try:
+                    agent.registry["robot_tool"].backend.execute({"action": "move_home"})
+                except Exception:
+                    pass
                 agent.close()
             timings = agent.last_timings
             totals.append(timings["total_seconds"])
@@ -168,7 +258,13 @@ def run_basic_complex(name, tasks, backend, planner_name, rounds):
             f"响应={rows[-1]['avg_response_s']}s"
             + (f" 失败: {rows[-1]['failures']}" if rows[-1]["failures"] else "")
         )
-    write_csv(os.path.join(RESULTS_DIR, f"task_sets_{name}.csv"), rows)
+    # 输出按 规划器/后端 区分，避免 mock 轮覆盖 real 数据
+    suffix = ""
+    if planner_name == "deepseek":
+        suffix += "_deepseek"
+    if backend == "real":
+        suffix += "_real"
+    write_csv(os.path.join(RESULTS_DIR, f"task_sets_{name}{suffix}.csv"), rows)
     return rows
 
 

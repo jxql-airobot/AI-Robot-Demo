@@ -49,6 +49,14 @@ def read_csv(name):
         return list(csv.DictReader(fh))
 
 
+def read_csv_prefer(*names):
+    """优先读取 real 数据文件，不存在时回退到默认文件"""
+    for name in names:
+        if os.path.exists(os.path.join(RESULTS, name)):
+            return read_csv(name)
+    return []
+
+
 def read_logs():
     path = os.path.join(RESULTS, "runtime_logs.json")
     recs = []
@@ -77,8 +85,8 @@ def mean(vals):
 
 
 def function_test():
-    basic = read_csv("task_sets_basic.csv")
-    complex_ = read_csv("task_sets_complex.csv")
+    basic = read_csv_prefer("task_sets_basic_real.csv", "task_sets_basic.csv")
+    complex_ = read_csv_prefer("task_sets_complex_real.csv", "task_sets_complex.csv")
     lines = [
         "# 第五章数据：基础功能测试（ABB RobotStudio 真实执行）",
         "",
@@ -137,7 +145,7 @@ def function_test():
 
 def agent_experiment():
     exp1 = read_csv("experiment1_planning.csv")
-    complex_ = read_csv("task_sets_complex.csv")
+    complex_ = read_csv_prefer("task_sets_complex_real.csv", "task_sets_complex.csv")
     logs = read_logs()
     lines = [
         "# 第五章数据：Agent 任务规划实验",
@@ -248,8 +256,8 @@ def rag_experiment():
 
 def backend_comparison():
     exp3 = read_csv("experiment3_backend.csv")
-    basic = read_csv("task_sets_basic.csv")
-    complex_ = read_csv("task_sets_complex.csv")
+    basic = read_csv_prefer("task_sets_basic_real.csv", "task_sets_basic.csv")
+    complex_ = read_csv_prefer("task_sets_complex_real.csv", "task_sets_complex.csv")
     logs = read_logs()
     rs_tasks = len(basic) + len(complex_)
     rs_rate = sum(1 for r in basic + complex_ if float(r["success_rate"]) == 1.0) / rs_tasks
@@ -357,8 +365,8 @@ def write(name, lines):
 
 
 def charts():
-    basic = read_csv("task_sets_basic.csv")
-    complex_ = read_csv("task_sets_complex.csv")
+    basic = read_csv_prefer("task_sets_basic_real.csv", "task_sets_basic.csv")
+    complex_ = read_csv_prefer("task_sets_complex_real.csv", "task_sets_complex.csv")
     know = read_csv("task_sets_knowledge.csv")
     exp2 = read_csv("experiment2_rag.csv")
     exp3 = read_csv("experiment3_backend.csv")
