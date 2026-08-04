@@ -218,9 +218,9 @@ MODULE socket_server
         s := NumToStr(p.trans.x,3) + "," +
              NumToStr(p.trans.y,3) + "," +
              NumToStr(p.trans.z,3) + "," +
-             NumToStr(EulerZYX(p.rot \X),2) + "," +
-             NumToStr(EulerZYX(p.rot \Y),2) + "," +
-             NumToStr(EulerZYX(p.rot \Z),2);
+             NumToStr(EulerZYX(\X, p.rot),2) + "," +
+             NumToStr(EulerZYX(\Y, p.rot),2) + "," +
+             NumToStr(EulerZYX(\Z, p.rot),2);
         RETURN s;
     ENDFUNC
 
