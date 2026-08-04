@@ -150,7 +150,7 @@ class RobotStudioMockPlanner:
                         "tool": "robot_tool",
                         "args": {
                             "action": "joint_move",
-                            "joints": [10.0, 20.0, 30.0, 0.0, 0.0, 0.0],
+                            "joints": [10.0, 20.0, 30.0, 45.0, 60.0, 0.0],
                         },
                         "purpose": "移动到指定关节位置",
                     }

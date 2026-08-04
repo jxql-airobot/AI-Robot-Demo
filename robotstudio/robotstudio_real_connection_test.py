@@ -39,7 +39,7 @@ def test_mock():
     assert reply.get("joints") == [0.0] * 6, f"返回格式异常: {reply}"
     for action in (
         {"action": "move_home"},
-        {"action": "joint_move", "joints": [10, 20, 30, 0, 0, 0]},
+        {"action": "joint_move", "joints": [10, 20, 30, 45, 60, 0]},
         {"action": "linear_move", "target": [0.3, 0, 0.3, 0, 0, 0]},
     ):
         reply = client.send_action(action)
@@ -61,6 +61,11 @@ def test_real(host, port, timeout):
         reply = client.send_action({"action": "move_home"})
         assert reply["ok"], f"move_home 失败: {reply}"
         print(f"[OK] move_home 执行成功: {reply['message']}")
+        reply = client.send_action(
+            {"action": "joint_move", "joints": [10, 20, 30, 45, 60, 0]}
+        )
+        assert reply["ok"], f"joint_move(非奇异姿态) 失败: {reply}"
+        print(f"[OK] joint_move 到非奇异姿态: {reply['message']}")
         reply = client.send_action(
             {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
         )

@@ -49,20 +49,20 @@ def test_client_mock_loop():
     assert reply["ok"], reply
     assert reply["joints"] == [0.0] * 6
 
-    reply = client.send_action({"action": "joint_move", "joints": [10, 20, 30, 0, 0, 0]})
+    reply = client.send_action({"action": "joint_move", "joints": [10, 20, 30, 45, 60, 0]})
     assert reply["ok"], reply
-    assert reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    assert reply["joints"] == [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
 
     reply = client.get_position()
-    assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
     reply = client.send_action({"action": "status"})
-    assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
 
     reply = client.send_action(
         {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
     )
     assert reply["ok"], reply
-    assert reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    assert reply["joints"] == [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
     reply = client.send_action(
         {"action": "linear_move", "target": [0.3, 0.0]}
     )
