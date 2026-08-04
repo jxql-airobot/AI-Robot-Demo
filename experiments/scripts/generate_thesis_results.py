@@ -214,6 +214,7 @@ def agent_experiment():
         )
     m_all = sum(1 for r in vr_mock if float(r["success_rate"]) == 1.0)
     d_all = sum(1 for r in vr_ds if float(r["success_rate"]) == 1.0)
+    d_avg = sum(float(r["success_rate"]) for r in vr_ds) / len(vr_ds)
     lines += [
         f"| **合计** | {len(vr_mock)} | **{m_all}/{len(vr_mock)}（{m_all/len(vr_mock):.0%}）** | "
         f"**{d_all}/{len(vr_ds)}（{d_all/len(vr_ds):.0%}）** |",
@@ -233,7 +234,7 @@ def agent_experiment():
         "",
         "| 维度 | 规则规划器 | LLM 规划器 |",
         "| --- | --- | --- |",
-        "| 语言变体成功率 | 4%（1/24） | 88%（21/24 全轮成功，平均成功率 93%） |",
+        f"| 语言变体成功率 | 4%（1/24） | {d_all/len(vr_ds):.0%}（{d_all}/{len(vr_ds)} 全轮成功，平均成功率 {d_avg:.0%}） |",
         "| 响应时间 | ~0.01s（本地规则匹配） | 1~5s（DeepSeek API） |",
         "| 失败模式 | 关键词不匹配 → 无法理解/动作不匹配 | 偶发空计划；语义等价但规格不符 |",
         "",
@@ -243,7 +244,7 @@ def agent_experiment():
         "（关节），语义上更贴合“末端坐标”；",
         "- “把机械臂转到工位A那边/挪到指定工位”→ 偶发规划 `linear_move` 而非"
         " `joint_move`（直线插补到目标，同样可达）；",
-        "- 结论：LLM 智能体显著提升自然语言变体理解能力（4%→88%，平均 93%），"
+        f"- 结论：LLM 智能体显著提升自然语言变体理解能力（4%→{d_all/len(vr_ds):.0%}，平均 {d_avg:.0%}），"
         " 在安全约束层保证下可完整执行到真实机器人；严格规格匹配率低于系统级成功率，"
         " 体现了 LLM 规划的语义灵活性。",
     ]
