@@ -1,0 +1,7 @@
+# AI Robot Agent V5.1 GUI 依赖
+# 注意: numpy 必须锁定 1.26.4, 不能升级到 2.x (cv_bridge 不兼容)
+streamlit>=1.32
+numpy==1.26.4
+openai>=1.0
+python-dotenv>=1.0
+# rclpy / cv_bridge 来自 ROS2 Humble, 不需要 pip 安装
