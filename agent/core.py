@@ -134,8 +134,12 @@ class Agent:
             self.vector_store = None
             self.retriever = None
 
-    def handle(self, task):
-        """处理一条自然语言任务，返回 AgentResponse"""
+    def handle(self, task, task_type=None):
+        """处理一条自然语言任务，返回 AgentResponse
+
+        task_type: 实验用可选字段（如 basic_motion / planning / rag / vision），
+                   用于运行时日志分类统计；不传则记 "general"。
+        """
         t0 = time.monotonic()
         resolved = self.context.resolve_reference(task)
         self.context.update_task(resolved)
@@ -155,7 +159,7 @@ class Agent:
             "exec_seconds": round(t_exec - t_plan, 4),
         }
         # V6.2: 统一实验日志（自动记录，日志失败不影响主流程）
-        self._log_task(task, raw_plan, plan, step_results)
+        self._log_task(task, raw_plan, plan, step_results, task_type)
         return {
             "plan": plan,
             "step_results": step_results,
@@ -163,7 +167,7 @@ class Agent:
             "current_state": current_state,
         }
 
-    def _log_task(self, task, raw_plan, plan, step_results):
+    def _log_task(self, task, raw_plan, plan, step_results, task_type=None):
         """V6.2: 写入统一实验日志（JSON Lines -> experiments/results/runtime_logs.json）"""
         try:
             from experiments.tasklog.task_logger import TaskLogger
@@ -180,14 +184,17 @@ class Agent:
             errors = [r.get("message") for r in step_results if not r.get("ok")]
             timings = self.last_timings
             TaskLogger().log(
-                user_input=task,
+                task_type=task_type or "general",
+                input=task,
+                agent_enabled=True,
+                rag_enabled=self.rag_enabled,
                 planner_output=raw_plan,
                 generated_plan=plan,
                 tool_calls=tool_calls,
                 backend=self.backend,
-                execution_steps=step_results,
+                execution_result=step_results,
                 success=bool(steps) and all(r.get("ok") for r in step_results),
-                error_message="; ".join(errors) if errors else "",
+                error="; ".join(errors) if errors else "",
                 response_time=timings.get("total_seconds"),
                 planning_time=timings.get("plan_seconds"),
                 execution_time=timings.get("exec_seconds"),

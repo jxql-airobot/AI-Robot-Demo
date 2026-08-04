@@ -4,12 +4,15 @@
 
 ```
 experiments/
+├── scripts/        # V6.2 实验辅助脚本（stats.py 统计）
 ├── tasklog/        # V6.2 统一实验日志系统（JSON Lines）
-├── tasks/          # 任务集定义（JSON）
+├── tasks/          # 任务集定义（JSON：task_set / task_set_robotstudio / basic_tasks）
 ├── results/        # 评测结果（JSON 摘要 + CSV 汇总/明细）
 ├── evaluate.py     # 自动评测脚本
 ├── robotstudio_benchmark.py   # RobotStudio 实验基准（mock/real）
 ├── thesis_experiments.py      # V6.2 论文三组实验（CSV）
+├── logs/           # 实验过程日志（人工整理材料）
+├── figures/        # 实验图表
 └── README.md
 ```
 
@@ -43,11 +46,21 @@ python3 experiments/evaluate.py --mode ros2    # ROS2 模式（需仿真系统�
 `experiments/results/runtime_logs.json`，Gazebo / RobotStudio / Local / Mock
 统一格式：
 
+统一字段（论文实验 schema）：
+
 ```
-task_id, timestamp, user_input, planner_output, generated_plan, tool_calls,
-backend, execution_steps, success, error_message,
-response_time, planning_time, execution_time
+task_id, task_type, input, agent_enabled, rag_enabled, generated_plan,
+execution_result, success, response_time, error
 ```
+
+扩展字段（深入分析用）：
+
+```
+timestamp, planner_output, tool_calls, backend, planning_time, execution_time
+```
+
+`task_type` 可通过 `Agent.handle(task, task_type="basic_motion")` 传入，
+用于实验分类统计；`rag_enabled` 自动取自 Agent 的 RAG 开关。
 
 ```bash
 python -m experiments.tasklog.task_logger            # 查看当前日志条数
@@ -74,3 +87,19 @@ python experiments/thesis_experiments.py --experiment 3 --backend gazebo --round
 
 > 实验 2 的语义召回需要 RAG 模型（sentence-transformers，WSL 已配置）；
 > Windows 上未安装模型时两种模式均为关键词检索。
+
+## V6.2 日志统计（scripts/stats.py）
+
+```bash
+python experiments/scripts/stats.py                       # 总体成功率/响应/错误
+python experiments/scripts/stats.py --group task_type     # 按任务类型分组
+python experiments/scripts/stats.py --group backend       # 按后端分组
+```
+
+输出：任务数 / 成功率 / 平均响应时间（含规划、执行分解）/ 错误次数 / 错误 TOP。
+
+## 基础任务集（tasks/basic_tasks.json）
+
+10 条论文基础任务，字段：`id / name / task_type / input / expected`
+（期望工具/动作/召回，可选 `seed_memory` 预置记忆），覆盖
+基础运动 / 状态 / 规划 / 视觉 / 记忆(RAG) / 指代消解。

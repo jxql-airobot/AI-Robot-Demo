@@ -6,10 +6,12 @@ task_logger.py — 统一实验日志系统 (V6.2)
 Agent 每次任务执行结束后自动记录一条 JSON 记录，Gazebo / RobotStudio /
 Local / Mock 各后端统一格式，供论文实验数据统计。
 
-记录字段：
-    task_id, timestamp, user_input, planner_output, generated_plan,
-    tool_calls, backend, execution_steps, success, error_message,
-    response_time, planning_time, execution_time
+统一记录字段（论文实验 schema）：
+    task_id, task_type, input, agent_enabled, rag_enabled, generated_plan,
+    execution_result, success, response_time, error
+扩展字段（保留以便深入分析）：
+    timestamp, planner_output, tool_calls, backend,
+    planning_time, execution_time
 
 输出：experiments/results/runtime_logs.json（JSON Lines，每行一条记录）
 
@@ -44,15 +46,20 @@ class TaskLogger:
         record = {
             "task_id": fields.get("task_id")
             or f"task-{int(datetime.datetime.now().timestamp() * 1000)}-{uuid.uuid4().hex[:6]}",
+            "task_type": fields.get("task_type", "general"),
             "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
-            "user_input": fields.get("user_input", ""),
+            "input": fields.get("input", fields.get("user_input", "")),
+            "agent_enabled": bool(fields.get("agent_enabled", True)),
+            "rag_enabled": bool(fields.get("rag_enabled", False)),
             "planner_output": fields.get("planner_output"),
             "generated_plan": fields.get("generated_plan"),
             "tool_calls": fields.get("tool_calls") or [],
             "backend": fields.get("backend", ""),
-            "execution_steps": fields.get("execution_steps") or [],
+            "execution_result": fields.get("execution_result")
+            or fields.get("execution_steps")
+            or [],
             "success": bool(fields.get("success", False)),
-            "error_message": fields.get("error_message", ""),
+            "error": fields.get("error", fields.get("error_message", "")),
             "response_time": fields.get("response_time"),
             "planning_time": fields.get("planning_time"),
             "execution_time": fields.get("execution_time"),

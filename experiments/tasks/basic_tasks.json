@@ -1,0 +1,76 @@
+[
+  {
+    "id": "bt_home",
+    "name": "回到Home位置",
+    "task_type": "basic_motion",
+    "input": "回到Home位置",
+    "expected": {"tool": "robot_tool", "action": "move_home"}
+  },
+  {
+    "id": "bt_joint_move",
+    "name": "关节移动到指定点",
+    "task_type": "basic_motion",
+    "input": "移动机器人到指定点",
+    "expected": {"tool": "robot_tool", "action": "joint_move"}
+  },
+  {
+    "id": "bt_linear_move",
+    "name": "直线移动到目标点",
+    "task_type": "basic_motion",
+    "input": "执行直线移动到目标点",
+    "expected": {"tool": "robot_tool", "action": "linear_move"}
+  },
+  {
+    "id": "bt_status",
+    "name": "读取机器人状态",
+    "task_type": "status",
+    "input": "读取机器人当前状态",
+    "expected": {"tool": "robot_tool", "action": "get_position"}
+  },
+  {
+    "id": "bt_plan_move",
+    "name": "Agent规划移动到工作区域",
+    "task_type": "planning",
+    "input": "让机器人移动到工作区域",
+    "expected": {"tool": "robot_tool", "action": "joint_move"}
+  },
+  {
+    "id": "bt_vision",
+    "name": "视觉定位红色零件",
+    "task_type": "vision",
+    "input": "找到红色零件位置",
+    "expected": {"tool": "vision_tool"},
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
+  },
+  {
+    "id": "bt_memory_recall",
+    "name": "记忆召回零件位置",
+    "task_type": "rag",
+    "input": "之前看到的红色零件在哪里",
+    "expected": {"recall": "红色零件"},
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
+  },
+  {
+    "id": "bt_memory_move",
+    "name": "记忆驱动搬运",
+    "task_type": "rag",
+    "input": "把之前看到的红色零件移动到右侧区域",
+    "expected": {"tool": "robot_tool", "action": "linear_move"},
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
+  },
+  {
+    "id": "bt_memory_save",
+    "name": "保存记忆",
+    "task_type": "memory",
+    "input": "记住：B区域在检测区右侧",
+    "expected": {"tool": "memory_tool"}
+  },
+  {
+    "id": "bt_reference",
+    "name": "指代消解",
+    "task_type": "planning",
+    "input": "把那个零件放到成品区",
+    "expected": {"tool": "robot_tool"},
+    "setup_task": "把红色零件移动到检测区"
+  }
+]
