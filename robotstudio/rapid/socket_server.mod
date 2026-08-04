@@ -9,6 +9,9 @@ MODULE socket_server
     VAR jointtarget current_jt;
 
     PROC socket_main()
+        ! let MoveL auto-pick the closest valid axis configuration and handle wrist singularity
+        ConfL \Off;
+        SingArea \Wrist;
         SocketCreate server_socket;
         SocketBind server_socket, "0.0.0.0", 30000;
         SocketListen server_socket;
