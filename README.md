@@ -207,4 +207,6 @@ python main.py --mock --task "把蓝色零件放到成品区"
 | V2 | Memory Robot Agent | SQLite 记忆和环境信息 | ✅ 已完成 |
 | V3 | ROS2 Robot Framework | 学习机器人通信系统，让 AI 大脑连接机器人控制系统 | ✅ 已完成 |
 | V4 | Gazebo Simulation | 建立机器人仿真环境，并加入视觉感知（OpenCV/YOLO） | ✅ 已完成 |
-| V5 | Real Robot & Industrial Application | 连接真实机械臂和工业自动化设备 | 规划中 |
+| V5 | AI Robot Agent 科研完善 | 完善 AI 机器人大脑的科研能力 | 🚧 进行中 |
+| V6 | ABB RobotStudio / 真实机器人 | 接入 ABB RobotStudio 与真实机械臂 | 规划中 |
+| V7 | 工业智能制造应用 | 面向工业智能制造的落地应用 | 规划中 |
