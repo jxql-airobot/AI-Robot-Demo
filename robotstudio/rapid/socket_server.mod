@@ -4,6 +4,7 @@ MODULE socket_server
     VAR socketdev server_socket;
     VAR string received_string;
     VAR num joint_angles{6};
+    VAR string move_reply;
     VAR robtarget pose_target := [[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
     VAR jointtarget current_jt;
 
@@ -91,8 +92,8 @@ MODULE socket_server
             ENDIF
         ELSEIF command = "MOVEL" THEN
             IF ParsePose(cmd) THEN
-                MoveL pose_target, v1000, fine, tool0;
-                RETURN "OK " + JointString();
+                DoMoveL;
+                RETURN move_reply;
             ELSE
                 RETURN "ERROR MOVEL cannot parse parameters";
             ENDIF
@@ -104,6 +105,15 @@ MODULE socket_server
     ERROR
         RETURN "ERROR RAPID error " + NumToStr(ERRNO,0);
     ENDFUNC
+
+    PROC DoMoveL()
+        MoveL pose_target, v1000, fine, tool0;
+        move_reply := "OK " + JointString();
+        RETURN;
+    ERROR
+        move_reply := "ERROR RAPID error " + NumToStr(ERRNO,0);
+        RETURN;
+    ENDPROC
 
     FUNC bool ParseJoints(string cmd)
         VAR num pos;
@@ -166,11 +176,20 @@ MODULE socket_server
             ENDIF
         ENDFOR
 
-        pose_target.trans.x := vals{1};
-        pose_target.trans.y := vals{2};
-        pose_target.trans.z := vals{3};
         ! rx=roll(X) ry=pitch(Y) rz=yaw(Z), degrees; OrientZYX uses Z-Y-X order
-        pose_target.rot := OrientZYX(vals{6}, vals{5}, vals{4});
+        IF vals{4} = 0 AND vals{5} = 0 AND vals{6} = 0 THEN
+            ! all-zero orientation: keep current tool orientation (CRobT),
+            ! avoid wrist singularity on pure position moves
+            pose_target := CRobT();
+            pose_target.trans.x := vals{1};
+            pose_target.trans.y := vals{2};
+            pose_target.trans.z := vals{3};
+        ELSE
+            pose_target.trans.x := vals{1};
+            pose_target.trans.y := vals{2};
+            pose_target.trans.z := vals{3};
+            pose_target.rot := OrientZYX(vals{6}, vals{5}, vals{4});
+        ENDIF
         RETURN TRUE;
     ENDFUNC
 
