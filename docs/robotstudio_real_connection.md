@@ -79,6 +79,16 @@ SocketReceive / SocketSend）依赖控制器选项 616-1 PC Interface（Socket M
 - `SocketReceive \Str` **保留**行尾 `\r\n`，服务端需自行去掉（`TrimLine`）；
 - `SocketSend \Str` **不自动**补行尾，服务端需自行追加 `\0A`（LF）；
 - 回复为单行文本，客户端按 `\n` 切行解析。
+- `MOVEL` 参数为 TCP 位姿：`x,y,z` 单位米，`rx,ry,rz` 为欧拉角（roll/pitch/yaw，
+  单位度）；RAPID 侧用 `OrientZYX(rz, ry, rx)` 转成四元数，执行真实 `MoveL`
+  （速度 `v1000`，`fine` 停止点）。**注意：协议用米，RAPID `robtarget.trans`
+  用毫米，服务端必须 ×1000 换算**（V6.2 已处理）。
+- `MOVEL` 的 `rx,ry,rz` 全为 0 时表示**保持当前工具朝向**（服务端用 `CRobT()`
+  取当前姿态，只改位置），用于纯位置直线运动，避免腕部奇异区。
+- `GETPOSE` 返回当前 TCP 位姿 `x,y,z,rx,ry,rz`（x/y/z 单位米，来自
+  `CRobT()` + `EulerZYX`）。
+- 所有命令的 `OK` 回复携带**实测关节角**：RAPID 用 `CJointT()` 读回真值，
+  不再是“最近一次命令值”。
 
 ## 7. RAPID 兼容性要点（实测踩坑记录）
 
@@ -88,6 +98,9 @@ SocketReceive / SocketSend）依赖控制器选项 616-1 PC Interface（Socket M
 | `StrFind` | 签名是 `StrFind(String, StartPos, Charset)`，不是子串查找 |
 | `StrMatch` | 子串查找用 `StrMatch(String, StartPos, Pattern)`；未找到返回非 0（按 <=0 处理） |
 | `StrToVal` | 签名是 `StrToVal(Str, ValVar)`，返回 bool，不是单参函数 |
+| `confdata` 聚合 | 是 **4 个分量** `[cf1,cf4,cfx,cfy]`；写成 3 个会报“记录类型集合中的组件太少” |
+| `EulerZYX` 调用 | 可选参数在前：`EulerZYX(\X, rot)`；写成 `EulerZYX(rot \X)` 报“自变量过多” |
+| 米/毫米单位 | 协议用米，RAPID `robtarget.trans` 用毫米，MOVEL 目标必须 ×1000（GETPOSE ÷1000） |
 | `Chr()` | 不存在；字符串内控制字符用 `\0A`（LF）、`\0D`（CR） |
 | `"\n"` 转义 | 不支持，必须写 `"\0A"` |
 | 模块文件头 | 必须直接以 `MODULE` 开头；UTF-8 BOM 或文件头注释会导致 `(1,1) 预期值 'module'` |
@@ -127,6 +140,8 @@ python robotstudio/manual_test_client.py --real
 
 测试链路：Python 客户端 -> TCP 30000 -> RAPID socket_server -> IRC5 虚拟控制器 -> IRB120 运动。
 
+### 10.1 V6.1（TCP 闭环）
+
 | 命令 | 测试次数 | 成功率 | 平均响应时间 |
 | --- | --- | --- | --- |
 | GETPOS | 3 | 100% | 145 ms（首次 433 ms，稳态 ~1 ms） |
@@ -134,6 +149,27 @@ python robotstudio/manual_test_client.py --real
 | MOVEJ（MoveAbsJ） | 3 | 100% | 172 ms（首次 423 ms，稳态 ~46 ms） |
 | STATUS | 3 | 100% | 0.9 ms |
 | MOVEL（占位） | 3 | 100% | 0.8 ms |
+
+### 10.2 V6.2（真实直线运动 + 真值回读 + 实验基准）
+
+| 命令 | 测试次数 | 成功率 | 平均响应时间 |
+| --- | --- | --- | --- |
+| HOME（MoveAbsJ 回零） | 5 | 100% | ~470 ms |
+| MOVEJ（MoveAbsJ，非奇异姿态） | 5 | 100% | ~650 ms |
+| MOVEL（真实 MoveL，100mm） | 5 | 100% | 271 ms |
+| GETPOSE（CRobT 位姿反馈） | 5 | 100% | ~1 ms |
+| GETPOS/STATUS（CJointT 真值） | 5 | 100% | ~1 ms |
+
+实测验证（2026-08-04）：
+
+- MOVEJ [10,20,30,45,60,0] 后 GETPOSE 返回 (0.3169, 0.1006, 0.3016) m，
+  与官方 DH 参数正运动学计算结果 (317, 101, 301) mm 一致；
+- MOVEL 到当前位置 +0.1m（X）后 GETPOSE 返回 (0.4168, 0.1006, 0.3016) m，
+  **位移 99.9mm、姿态保持不变（欧拉角变化 <0.03°）**，关节真值从
+  [10,20,30,45,60,0] 变为 [7.73,37.76,3.37,40.96,67.54,5.42]——真实直线运动闭环成立；
+- RobotStudio 实验基准（`experiments/robotstudio_benchmark.py --backend real --rounds 5`）：
+  **8 任务 × 5 轮 = 40/40 成功率 100%，平均响应 0.539s，RAG 召回率 100%**。
+  报告：`experiments/results/20260804_145535_robotstudio_report.md`。
 
 多客户端验证：client1 连接执行 4 条命令后断开，服务端不重启，client2 再次连接
 执行 4 条命令成功，关节状态跨连接保持（client2 GETPOS 正确读到 client1 的 MOVEJ 结果）。
@@ -143,8 +179,10 @@ python robotstudio/manual_test_client.py --real
 
 ## 11. 已知限制与后续计划
 
-- `MOVEL` 目前只返回 OK，未产生真实直线运动（待实现 MoveL + 位姿解析）；
-- 返回的关节值为“最近一次命令值”，不是实测读回值（后续可用 `CJointT()` 读真值）；
+- ~~`MOVEL` 占位~~：V6.2 已实现真实 `MoveL` + 位姿解析（`ParsePose` + `OrientZYX`）；
+- ~~返回最近命令值~~：V6.2 起 `STATUS/GETPOS/HOME/MOVEJ/MOVEL` 均用
+  `CJointT()` 读实测关节真值；
+- `MOVEL` 默认保持当前朝向（rx,ry,rz=0 时），显式欧拉角也支持；
 - 单端口单服务器，未做鉴权与并发连接隔离；
 - 后续：真实 ABB 机器人（RobotWare + 现场网络）、PLC 通信（V7+）。
 
@@ -152,6 +190,9 @@ python robotstudio/manual_test_client.py --real
 
 | 错误 | 可能原因 | 解决 |
 | --- | --- | --- |
+| 50026 靠近奇点 | 路径经过腕部/肩部奇异区（历史上还因单位错误把目标算到基座轴心附近） | 非奇异姿态起步 + `SingArea \Wrist` + 目标远离奇异区 |
+| 50442 轴配置错误 | 目标点给定轴配置不可达 | `ConfL \Off` 自动选最近可行配置 |
+| 50501 短距离运动 | 目标距离过短（单位错误时仅 ~0.3mm） | 检查米/毫米换算，MOVEL 目标 ×1000 |
 | 161 选项缺失，SocketCreate 需要 PC | 系统缺 616-1 PC Interface | 系统选项 -> 通信 -> 勾选 616-1 |
 | 41595 套接字错误 | 客户端断开 | 已由 ERROR 段处理，无需操作 |
 | 41581 套接字错误 | SocketAccept 等待超时（默认 60s） | 已由 ERROR 段 RETRY 继续等待 |
