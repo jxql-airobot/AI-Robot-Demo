@@ -124,6 +124,8 @@ python3 -m streamlit run gui/app.py
 
 浏览器打开 http://localhost:8501
 
+一键启动：桌面「AI机器人Demo全家桶」快捷方式（Windows Terminal 开 4 个标签页：V1/V2 演示、ROS2+Gazebo、任务终端、V5.1 GUI，全 UTF-8 无乱码）。
+
 ## 技术栈
 
 - Python 3.12
