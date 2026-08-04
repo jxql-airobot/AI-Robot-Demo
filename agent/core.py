@@ -39,7 +39,14 @@ def _default_db_path():
 class Agent:
     """AI Robot 智能体：任务理解 → 计划 → 工具调用 → 结果返回"""
 
-    def __init__(self, backend="ros2", db_path=None, planner=None, ros2_client=None):
+    def __init__(
+        self,
+        backend="ros2",
+        db_path=None,
+        planner=None,
+        ros2_client=None,
+        robotstudio_client=None,
+    ):
         """
         backend: "ros2"（主模式，驱动现有 robot_controller）| "local"（SimRobot）
         planner: 传入规划器实例；默认自动选择 DeepSeek 或 Mock
@@ -74,7 +81,7 @@ class Agent:
             # V6.0: ABB RobotStudio 工业机器人仿真后端（Mock 可测）
             from agent.tools.robotstudio_tool import RobotStudioBackend
 
-            robot_backend = RobotStudioBackend()
+            robot_backend = RobotStudioBackend(client=robotstudio_client)
             self.robotstudio_client = robot_backend.client
             vision = VisionTool(memory=self.memory)
             environment = EnvironmentTool(robot=robot_backend, memory=self.memory)

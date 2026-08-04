@@ -1,0 +1,62 @@
+[
+  {
+    "id": "rs_home",
+    "category": "基础运动",
+    "task": "回到Home位置",
+    "expected_tool": "robot_tool",
+    "expected_action": "move_home"
+  },
+  {
+    "id": "rs_joint_move",
+    "category": "基础运动",
+    "task": "移动机器人到指定点",
+    "expected_tool": "robot_tool",
+    "expected_action": "joint_move"
+  },
+  {
+    "id": "rs_linear_move",
+    "category": "基础运动",
+    "task": "执行直线移动到目标点",
+    "expected_tool": "robot_tool",
+    "expected_action": "linear_move"
+  },
+  {
+    "id": "rs_status",
+    "category": "基础运动",
+    "task": "读取机器人当前状态",
+    "expected_tool": "robot_tool",
+    "expected_action": "get_position"
+  },
+  {
+    "id": "rs_plan_move",
+    "category": "Agent规划任务",
+    "task": "让机器人移动到工作区域",
+    "expected_tool": "robot_tool",
+    "expected_action": "joint_move"
+  },
+  {
+    "id": "rs_vision",
+    "category": "视觉任务",
+    "task": "找到红色零件位置",
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "expected_recall": "红色零件",
+    "expected_tools_any": ["vision_tool", "environment_tool"]
+  },
+  {
+    "id": "rs_memory_recall",
+    "category": "记忆任务",
+    "task": "之前看到的红色零件在哪里",
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "expected_recall": "红色零件",
+    "expected_tools_any": ["vision_tool", "environment_tool"]
+  },
+  {
+    "id": "rs_memory_move",
+    "category": "记忆任务",
+    "task": "把之前看到的红色零件移动到右侧区域",
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "expected_recall": "红色零件",
+    "expected_tool": "robot_tool",
+    "expected_action": "linear_move"
+  }
+]
