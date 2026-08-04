@@ -87,6 +87,19 @@ with st.sidebar:
     mode_idx = st.radio(L.MODE_LABEL, [L.MODE_ROS2, L.MODE_LOCAL], index=0)
     is_local = mode_idx == 1
 
+    # V6.0: 机器人后端选择（Gazebo / RobotStudio），保持原界面结构
+    robot_backend_label = st.selectbox(
+        L.ROBOT_BACKEND_LABEL,
+        [L.ROBOT_BACKEND_GAZEBO, L.ROBOT_BACKEND_ROBOTSTUDIO],
+        index=0,
+    )
+    is_robotstudio = robot_backend_label == L.ROBOT_BACKEND_ROBOTSTUDIO
+    if st.session_state.get("rs_backend") != is_robotstudio:
+        if st.session_state.get("backend"):
+            st.session_state["backend"].close()
+            st.session_state["backend"] = None
+        st.session_state["rs_backend"] = is_robotstudio
+
     if st.button(L.BUTTON_CONNECT):
         if st.session_state.get("backend"):
             st.session_state["backend"].close()
@@ -101,7 +114,8 @@ with st.sidebar:
     else:
         if st.session_state.get("backend") is None:
             try:
-                st.session_state["backend"] = Ros2Backend()
+                robot_backend = "robotstudio" if is_robotstudio else "gazebo"
+                st.session_state["backend"] = Ros2Backend(robot_backend=robot_backend)
             except Exception as exc:
                 st.error(L.ERROR_CONNECT_FAILED.format(error=exc))
                 st.caption(L.HINT_CHECK_ENV)
@@ -110,6 +124,8 @@ with st.sidebar:
     if backend:
         mode_name = L.MODE_NAMES.get(backend.name, backend.name)
         st.success(L.STATUS_CONNECTED.format(mode=mode_name))
+        if is_robotstudio:
+            st.caption(L.ROBOT_RS_CONNECTED)
         st.caption(L.HINT_SIM_REQUIRED)
 
 # ---------- 主界面 ----------
@@ -263,9 +279,16 @@ with tab_robot:
     else:
         data, ts = odom
         st.caption(L.WS_LAST_UPDATE.format(time=time.strftime("%H:%M:%S", time.localtime(ts))))
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric(L.ROB_METRIC_X, f"{data['x']:.2f} m")
-        c2.metric(L.ROB_METRIC_Y, f"{data['y']:.2f} m")
-        c3.metric(L.ROB_METRIC_YAW, f"{data['yaw']:.2f} rad")
-        c4.metric(L.ROB_METRIC_LINEAR, f"{data['linear_x']:.2f} m/s")
-        c5.metric(L.ROB_METRIC_ANGULAR, f"{data['angular_z']:.2f} rad/s")
+        if "joints" in data:
+            # V6.0: RobotStudio 模式显示关节位置
+            c1, c2, c3 = st.columns(3)
+            c1.metric(L.ROBOT_RS_JOINTS, "、".join(f"{j:.1f}" for j in data["joints"]))
+            c2.metric(L.ROBOT_RS_CONNECT_STATE, "已连接" if data.get("connected") else "未连接")
+            c3.metric(L.ROBOT_RS_LAST_ACTION, data.get("last_action") or "-")
+        else:
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric(L.ROB_METRIC_X, f"{data['x']:.2f} m")
+            c2.metric(L.ROB_METRIC_Y, f"{data['y']:.2f} m")
+            c3.metric(L.ROB_METRIC_YAW, f"{data['yaw']:.2f} rad")
+            c4.metric(L.ROB_METRIC_LINEAR, f"{data['linear_x']:.2f} m/s")
+            c5.metric(L.ROB_METRIC_ANGULAR, f"{data['angular_z']:.2f} rad/s")

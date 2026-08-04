@@ -10,6 +10,7 @@ backend.py — GUI 后端抽象 (V5.1)
 
 import os
 import sys
+import time
 
 # 把 gui/ 与项目根目录加入 sys.path，便于复用 config.py 和根目录的 llm.py / memory.py / robot.py
 GUI_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -68,18 +69,26 @@ class Ros2Backend(AgentBackend):
 
     name = "ROS2"
 
-    def __init__(self, planner=None):
+    def __init__(self, planner=None, robot_backend="gazebo"):
         # 延迟导入：rclpy 只在 source 过 ROS2 的环境可用；
         # memory.py 复用仓库根目录的 V2 记忆系统（不修改原文件）
-        from ros2_client import Ros2Client
         from memory import MemoryStore
         from agent import Agent
 
-        self.client = Ros2Client()
         self.memory = MemoryStore(ROS2_DB_PATH)
-        # V5.2: GUI 对话走 Agent（可解释 Plan + 四工具），复用同一个 ROS2 客户端
+        self.robot_backend = robot_backend
+        self.client = None
+        if robot_backend == "gazebo":
+            from ros2_client import Ros2Client
+
+            self.client = Ros2Client()
+            agent_backend = "ros2"
+        else:
+            # V6.0: RobotStudio 后端（Mock 可测，无需 ROS2 节点）
+            agent_backend = "robotstudio"
+        # V5.2: GUI 对话走 Agent（可解释 Plan + 四工具），Gazebo 模式复用 ROS2 客户端
         self.agent = Agent(
-            backend="ros2",
+            backend=agent_backend,
             ros2_client=self.client,
             db_path=ROS2_DB_PATH,
             planner=planner,
@@ -99,7 +108,23 @@ class Ros2Backend(AgentBackend):
         return self.client.get_vision()
 
     def get_odom(self):
-        return self.client.get_odom()
+        if self.client is not None:
+            return self.client.get_odom()
+        # V6.0: RobotStudio 模式返回关节位置快照
+        try:
+            state = self.agent.registry["robot_tool"].backend.get_state()
+            if state and state.get("joints") is not None:
+                return (
+                    {
+                        "joints": state["joints"],
+                        "connected": state.get("connected", False),
+                        "last_action": state.get("last_action"),
+                    },
+                    time.time(),
+                )
+        except Exception:
+            pass
+        return None
 
     def list_memories(self):
         """查看全部记忆（V5.1 只做查看和查询，不做删除）"""
@@ -118,7 +143,8 @@ class Ros2Backend(AgentBackend):
 
     def close(self):
         self.agent.close()
-        self.client.close()
+        if self.client is not None:
+            self.client.close()
 
 
 class LocalBackend(AgentBackend):

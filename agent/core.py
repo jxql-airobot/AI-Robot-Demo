@@ -51,6 +51,7 @@ class Agent:
         self.db_path = db_path or _default_db_path()
         self.memory = MemoryStore(self.db_path)
         self.ros2_client = None
+        self.robotstudio_client = None
         self.embedder = None
         self.vector_store = None
         self.retriever = None
@@ -69,6 +70,14 @@ class Agent:
                 ros2_client=self.ros2_client,
                 memory=self.memory,
             )
+        elif backend == "robotstudio":
+            # V6.0: ABB RobotStudio 工业机器人仿真后端（Mock 可测）
+            from agent.tools.robotstudio_tool import RobotStudioBackend
+
+            robot_backend = RobotStudioBackend()
+            self.robotstudio_client = robot_backend.client
+            vision = VisionTool(memory=self.memory)
+            environment = EnvironmentTool(robot=robot_backend, memory=self.memory)
         else:
             robot_backend = LocalRobotBackend()
             vision = VisionTool(memory=self.memory)
@@ -181,3 +190,5 @@ class Agent:
         """释放资源（ROS2 客户端等）"""
         if self.ros2_client is not None:
             self.ros2_client.close()
+        if self.robotstudio_client is not None:
+            self.robotstudio_client.close()

@@ -28,6 +28,15 @@ HINT_CHECK_ENV = "请确认：① 已在 WSL 中 source 过 ROS2 环境；② �
 STATUS_CONNECTED = "已连接：{mode}"
 HINT_SIM_REQUIRED = "仿真系统需已启动（ros2 launch ai_robot demo_v4.launch.py）"
 
+# ---------- V6.0: 机器人后端选择 ----------
+ROBOT_BACKEND_LABEL = "机器人后端"
+ROBOT_BACKEND_GAZEBO = "Gazebo"
+ROBOT_BACKEND_ROBOTSTUDIO = "RobotStudio"
+ROBOT_RS_CONNECTED = "已连接：RobotStudio（Mock）"
+ROBOT_RS_JOINTS = "关节位置"
+ROBOT_RS_CONNECT_STATE = "连接状态"
+ROBOT_RS_LAST_ACTION = "最后动作"
+
 # ---------- 标签页 ----------
 TAB_CHAT = "💬 任务对话"
 TAB_WORKSPACE = "🗂 工作台状态"

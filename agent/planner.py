@@ -99,6 +99,53 @@ class MockPlanPlanner:
             station = next((t for t in topics if t in text), None)
         current_state = context.current_state or "未知"
 
+        # V6.0: ABB RobotStudio 工业机器人指令（回 Home / 移动到指定点 / 搬运动作）
+        low = text.lower()
+        if "home" in low or "回原点" in low or "回初始" in low:
+            return {
+                "task_analysis": "用户要求工业机器人回到 Home 位置",
+                "goal": "移动机器人回 Home 位置",
+                "steps": [
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "move_home"},
+                        "purpose": "执行 Home 动作（MoveAbsJ 归零）",
+                    }
+                ],
+                "current_state": current_state,
+            }
+        if "移动到点" in text or "移动到指定点" in text:
+            return {
+                "task_analysis": "用户要求机器人移动到指定点",
+                "goal": "移动到指定点",
+                "steps": [
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "joint_move", "joints": [10.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+                        "purpose": "执行 MoveJ 移动到指定关节位置",
+                    }
+                ],
+                "current_state": current_state,
+            }
+        if "搬运" in text or "搬运动作" in text:
+            return {
+                "task_analysis": "用户要求执行简单搬运动作",
+                "goal": "执行简单搬运动作（移动到目标点）",
+                "steps": [
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "joint_move", "joints": [30.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+                        "purpose": "移动到搬运目标点",
+                    },
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "move_home"},
+                        "purpose": "搬运完成后回到 Home",
+                    },
+                ],
+                "current_state": current_state,
+            }
+
         # 记住指令 -> 写入记忆
         if text.startswith("记住") or text.startswith("记忆"):
             parsed = self._parse_remember(text)

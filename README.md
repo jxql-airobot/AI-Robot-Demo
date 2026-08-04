@@ -92,6 +92,7 @@ ROS2 设计、Gazebo 设计、实验记录、版本历史、研究介绍、学�
 | V5.2 | Agent任务规划能力增强 | ✅ |
 | V5.3 | RAG语义记忆系统 | ✅ |
 | V5.4 | Agent评测体系（任务集+自动评测） | ✅ |
+| V6.0 | RobotStudio工业机器人仿真后端（Mock闭环） | 🚧 进行中 |
 
 Git Tag：`v4.0-gazebo` → `v5.1-gui` → `v5.2-agent` →（`v5.3-rag`）
 
