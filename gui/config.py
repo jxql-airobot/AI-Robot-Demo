@@ -16,6 +16,19 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROS2_DB_PATH = os.path.expanduser("~/ros2_ws/database.db")
 LOCAL_DB_PATH = os.path.join(REPO_ROOT, "database.db")
 
+
+def resolve_gui_db_path():
+    """按运行环境选择 GUI 记忆库。
+
+    - WSL（存在 ~/ros2_ws 目录）：使用 ROS2 工作区库（与 brain_node /
+      vision_node 一致）；
+    - Windows（无 ~/ros2_ws）：回退到仓库根目录的本地库，避免
+      “unable to open database file”。
+    """
+    if os.path.isdir(os.path.expanduser("~/ros2_ws")):
+        return ROS2_DB_PATH
+    return LOCAL_DB_PATH
+
 # ROS2 话题（与 V3/V4 现有节点完全一致，只做客户端，不修改节点）
 TOPIC_TASK = "/ai_robot/task"        # 用户任务（String）-> ai_brain
 TOPIC_ACTION = "/ai_robot/action"    # JSON 动作（String）-> robot_controller

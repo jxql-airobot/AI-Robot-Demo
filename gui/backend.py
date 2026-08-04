@@ -19,7 +19,7 @@ for p in (GUI_DIR, REPO_ROOT):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from config import ROS2_DB_PATH  # noqa: E402
+from config import resolve_gui_db_path  # noqa: E402
 
 
 class AgentBackend:
@@ -75,7 +75,7 @@ class Ros2Backend(AgentBackend):
         from memory import MemoryStore
         from agent import Agent
 
-        self.memory = MemoryStore(ROS2_DB_PATH)
+        self.memory = MemoryStore(resolve_gui_db_path())
         self.robot_backend = robot_backend
         self.last_result_message = ""
         self.last_task = ""
@@ -94,7 +94,7 @@ class Ros2Backend(AgentBackend):
         self.agent = Agent(
             backend=agent_backend,
             ros2_client=self.client,
-            db_path=ROS2_DB_PATH,
+            db_path=resolve_gui_db_path(),
             planner=planner,
         )
 
