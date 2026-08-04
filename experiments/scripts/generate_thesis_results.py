@@ -536,7 +536,42 @@ def charts():
     fig.tight_layout()
     fig.savefig(os.path.join(IMG_DIR, "thesis_rag_comparison.png"), dpi=150)
     plt.close(fig)
-    print("[图] 已生成 4 张论文图到 docs/thesis/images/")
+
+    # 图5：语言泛化对比（规则规划器 vs LLM 规划器，按意图）
+    vr_mock = read_csv("task_sets_variant_mock.csv")
+    vr_ds = read_csv("task_sets_variant_deepseek.csv")
+    intents = {
+        "var_home": "回到初始位置", "var_joint_move": "移动到指定位置",
+        "var_linear_move": "直线运动到目标点", "var_status": "读取机器人状态",
+        "var_memory_move": "记忆驱动搬运", "var_scan": "扫描工作台并报告",
+    }
+    fig, ax = plt.subplots(figsize=(9, 4.6))
+    labels = list(intents.values())
+    m_rates = [
+        sum(1 for r in vr_mock if r["task_id"] == tid and float(r["success_rate"]) == 1.0)
+        / max(sum(1 for r in vr_mock if r["task_id"] == tid), 1)
+        for tid in intents
+    ]
+    d_rates = [
+        sum(1 for r in vr_ds if r["task_id"] == tid and float(r["success_rate"]) == 1.0)
+        / max(sum(1 for r in vr_ds if r["task_id"] == tid), 1)
+        for tid in intents
+    ]
+    x = range(len(labels))
+    ax.bar([i - 0.18 for i in x], [r * 100 for r in m_rates], width=0.36,
+           label="规则规划器", color="#b0bec5")
+    ax.bar([i + 0.18 for i in x], [r * 100 for r in d_rates], width=0.36,
+           label="LLM 规划器", color="#e07b39")
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, rotation=18)
+    ax.set_ylim(0, 110)
+    ax.set_ylabel("语言变体成功率 (%)")
+    ax.set_title("语言泛化能力对比（24 条自然语言变体）")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(os.path.join(IMG_DIR, "thesis_planner_comparison.png"), dpi=150)
+    plt.close(fig)
+    print("[图] 已生成 5 张论文图到 docs/thesis/images/")
 
 
 def main():
