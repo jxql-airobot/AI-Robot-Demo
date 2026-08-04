@@ -75,7 +75,7 @@ class RobotStudioMockPlanner:
                 "current_state": current_state,
             }
 
-        if "回家" in text or "home" in text.lower():
+        if "回家" in text or "home" in text.lower() or "初始位置" in text or "回零" in text:
             return {
                 "task_analysis": "用户要求机器人回到 Home 位置",
                 "goal": "机器人回到 Home 位置",
@@ -104,16 +104,72 @@ class RobotStudioMockPlanner:
                 ],
                 "current_state": current_state,
             }
-        if "读取" in text or "状态" in text or "当前" in text:
+        # 组合任务：移动 + 读取状态（两步）
+        if "移动" in text and ("读取" in text or "状态" in text or "查询" in text):
             return {
-                "task_analysis": "用户要求读取机器人当前状态",
-                "goal": "读取机器人当前状态（关节真值）",
+                "task_analysis": "用户要求移动机器人并读取状态",
+                "goal": "移动到工作区域并读取当前状态",
                 "steps": [
                     {
                         "tool": "robot_tool",
+                        "args": {"action": "joint_move", "joints": [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]},
+                        "purpose": "移动到指定关节位置",
+                    },
+                    {
+                        "tool": "robot_tool",
                         "args": {"action": "get_position"},
-                        "purpose": "读取当前关节位置（CJointT 真值）",
+                        "purpose": "读取移动后的关节状态",
+                    },
+                ],
+                "current_state": current_state,
+            }
+        if "扫描" in text or "报告" in text:
+            return {
+                "task_analysis": "用户要求扫描工作台并报告状态",
+                "goal": "扫描工作台，报告零件位置",
+                "steps": [
+                    {
+                        "tool": "vision_tool",
+                        "args": {"scan": True},
+                        "purpose": "扫描视觉识别结果",
+                    },
+                    {
+                        "tool": "environment_tool",
+                        "args": {"status": True},
+                        "purpose": "核对工作台状态",
+                    },
+                ],
+                "current_state": current_state,
+            }
+        if "读取" in text or "状态" in text or "当前" in text:
+            action = "get_pose" if ("位姿" in text or "tcp" in text.lower()) else "get_position"
+            return {
+                "task_analysis": "用户要求读取机器人当前状态",
+                "goal": "读取机器人当前状态（真值回读）",
+                "steps": [
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": action},
+                        "purpose": "读取当前关节位置/位姿（CJointT/CRobT 真值）",
                     }
+                ],
+                "current_state": current_state,
+            }
+        if "搬运" in text:
+            return {
+                "task_analysis": "用户要求执行零件搬运流程",
+                "goal": "完成零件搬运流程（移动到搬运点后返回）",
+                "steps": [
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "joint_move", "joints": [30.0, 0.0, 0.0, 0.0, 0.0, 0.0]},
+                        "purpose": "移动到搬运/抓取位置",
+                    },
+                    {
+                        "tool": "robot_tool",
+                        "args": {"action": "move_home"},
+                        "purpose": "搬运完成后返回等待位置",
+                    },
                 ],
                 "current_state": current_state,
             }
@@ -133,10 +189,18 @@ class RobotStudioMockPlanner:
                     {
                         "tool": "robot_tool",
                         "args": {
+                            "action": "joint_move",
+                            "joints": [10.0, 20.0, 30.0, 45.0, 60.0, 0.0],
+                        },
+                        "purpose": "先移动到非奇异姿态，避免腕部奇异区",
+                    },
+                    {
+                        "tool": "robot_tool",
+                        "args": {
                             "action": "linear_move",
                             "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0],
                         },
-                        "purpose": f"执行 MoveL 搬运 {part} 到目标位姿",
+                        "purpose": f"执行 MoveL 搬运 {part}（保持当前姿态）",
                     }
                 ],
                 "current_state": current_state,

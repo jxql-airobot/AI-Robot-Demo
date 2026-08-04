@@ -1,0 +1,6 @@
+﻿task_id,task_type,input,evaluation,rounds,no_rag_answer_ok_rate,no_rag_keyword_hits_avg,no_rag_cited_rate,no_rag_avg_s,rag_answer_ok_rate,rag_keyword_hits_avg,rag_cited_rate,rag_avg_s
+task_201,knowledge,MOVEJ和MOVEL有什么区别？,answer_and_citation,3,1.0,2.0,0.0,2.4862,1.0,4.0,1.0,1.7688
+task_202,knowledge,机器人报警应该如何处理？,answer_and_citation,3,0.0,0.0,0.0,2.8151,1.0,4.0,1.0,1.5926
+task_203,knowledge,执行直线运动需要注意哪些参数？,answer_and_citation,3,1.0,1.0,0.0,2.7112,1.0,4.0,1.0,2.0713
+task_204,knowledge,RAPID Socket通信客户端断开如何处理？,answer_and_citation,3,1.0,1.0,0.0,3.3425,1.0,3.0,1.0,1.3112
+task_205,knowledge,机器人靠近奇点报50026如何避免？,answer_and_citation,3,1.0,2.0,0.0,2.8976,1.0,4.0,1.0,1.8536
