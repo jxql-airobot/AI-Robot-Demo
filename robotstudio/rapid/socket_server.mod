@@ -27,6 +27,10 @@ MODULE socket_server
         IF ERRNO = ERR_SOCK_TIMEOUT THEN
             RETRY;
         ENDIF
+        ! any other accept/session error: clean up the client socket and
+        ! keep the server listening instead of leaving a stale CLOSE_WAIT
+        CloseClient;
+        RETRY;
     ENDPROC
 
     PROC CloseClient()
@@ -47,7 +51,8 @@ MODULE socket_server
         ENDWHILE
 
     ERROR
-        TPWrite "Client disconnected, waiting for next client";
+        TPWrite "Client disconnected, closing client socket";
+        CloseClient;
         RETURN;
     ENDPROC
 
