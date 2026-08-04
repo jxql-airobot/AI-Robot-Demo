@@ -35,6 +35,7 @@ from std_msgs.msg import String  # noqa: E402
 
 from config import (  # noqa: E402
     GUI_NODE_NAME,
+    TOPIC_ACTION,
     TOPIC_ODOM,
     TOPIC_STATUS,
     TOPIC_TASK,
@@ -50,6 +51,7 @@ class Ros2Client:
             rclpy.init(args=[])
         self.node = Node(GUI_NODE_NAME)
         self.pub_task = self.node.create_publisher(String, TOPIC_TASK, 10)
+        self.pub_action = self.node.create_publisher(String, TOPIC_ACTION, 10)
         self.node.create_subscription(String, TOPIC_STATUS, self._on_status, 10)
         self.node.create_subscription(String, TOPIC_VISION, self._on_vision, 10)
         self.node.create_subscription(Odometry, TOPIC_ODOM, self._on_odom, 10)
@@ -112,6 +114,11 @@ class Ros2Client:
     def send_task(self, text):
         """发送一条自然语言任务到 /ai_robot/task"""
         self.pub_task.publish(String(data=text))
+
+    def publish_action(self, action):
+        """发布一条 JSON 动作指令到 /ai_robot/action（V5.2 Agent 工具用）"""
+        text = json.dumps(action, ensure_ascii=False)
+        self.pub_action.publish(String(data=text))
 
     def get_status(self):
         """返回最近一条状态反馈 (text, 时间戳)，无则 None"""

@@ -18,6 +18,7 @@ LOCAL_DB_PATH = os.path.join(REPO_ROOT, "database.db")
 
 # ROS2 话题（与 V3/V4 现有节点完全一致，只做客户端，不修改节点）
 TOPIC_TASK = "/ai_robot/task"        # 用户任务（String）-> ai_brain
+TOPIC_ACTION = "/ai_robot/action"    # JSON 动作（String）-> robot_controller
 TOPIC_STATUS = "/ai_robot/status"    # 状态反馈（String）<- robot_controller
 TOPIC_VISION = "/ai_robot/vision"    # 视觉识别结果（String JSON）<- vision_node
 TOPIC_ODOM = "/odom"                 # 里程计（Odometry）<- Gazebo 差速驱动
