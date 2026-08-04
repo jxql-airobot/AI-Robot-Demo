@@ -1,76 +1,50 @@
 [
   {
-    "id": "bt_home",
-    "name": "回到Home位置",
+    "task_id": "task_001",
     "task_type": "basic_motion",
-    "input": "回到Home位置",
-    "expected": {"tool": "robot_tool", "action": "move_home"}
+    "input": "让机器人回到初始位置",
+    "expected_action": "HOME",
+    "expected": {"tool": "robot_tool", "action": "move_home"},
+    "evaluation": "execution_success"
   },
   {
-    "id": "bt_joint_move",
-    "name": "关节移动到指定点",
+    "task_id": "task_002",
     "task_type": "basic_motion",
-    "input": "移动机器人到指定点",
-    "expected": {"tool": "robot_tool", "action": "joint_move"}
+    "input": "移动机器人末端到指定位置A",
+    "expected_action": "MOVEJ",
+    "expected": {"tool": "robot_tool", "action": "joint_move"},
+    "evaluation": "execution_success"
   },
   {
-    "id": "bt_linear_move",
-    "name": "直线移动到目标点",
-    "task_type": "basic_motion",
-    "input": "执行直线移动到目标点",
-    "expected": {"tool": "robot_tool", "action": "linear_move"}
-  },
-  {
-    "id": "bt_status",
-    "name": "读取机器人状态",
+    "task_id": "task_003",
     "task_type": "status",
-    "input": "读取机器人当前状态",
-    "expected": {"tool": "robot_tool", "action": "get_position"}
+    "input": "获取当前机器人位置",
+    "expected_action": "GETPOS",
+    "expected": {"tool": "robot_tool", "action": "get_position"},
+    "evaluation": "execution_success"
   },
   {
-    "id": "bt_plan_move",
-    "name": "Agent规划移动到工作区域",
-    "task_type": "planning",
-    "input": "让机器人移动到工作区域",
-    "expected": {"tool": "robot_tool", "action": "joint_move"}
-  },
-  {
-    "id": "bt_vision",
-    "name": "视觉定位红色零件",
-    "task_type": "vision",
-    "input": "找到红色零件位置",
-    "expected": {"tool": "vision_tool"},
-    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
-  },
-  {
-    "id": "bt_memory_recall",
-    "name": "记忆召回零件位置",
-    "task_type": "rag",
-    "input": "之前看到的红色零件在哪里",
-    "expected": {"recall": "红色零件"},
-    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
-  },
-  {
-    "id": "bt_memory_move",
-    "name": "记忆驱动搬运",
-    "task_type": "rag",
-    "input": "把之前看到的红色零件移动到右侧区域",
+    "task_id": "task_004",
+    "task_type": "basic_motion",
+    "input": "执行直线运动到目标点",
+    "expected_action": "MOVEL",
     "expected": {"tool": "robot_tool", "action": "linear_move"},
-    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"}
+    "evaluation": "execution_success"
   },
   {
-    "id": "bt_memory_save",
-    "name": "保存记忆",
-    "task_type": "memory",
-    "input": "记住：B区域在检测区右侧",
-    "expected": {"tool": "memory_tool"}
+    "task_id": "task_005",
+    "task_type": "status",
+    "input": "查询机器人当前关节状态",
+    "expected_action": "STATUS",
+    "expected": {"tool": "robot_tool", "action": "get_position"},
+    "evaluation": "execution_success"
   },
   {
-    "id": "bt_reference",
-    "name": "指代消解",
-    "task_type": "planning",
-    "input": "把那个零件放到成品区",
-    "expected": {"tool": "robot_tool"},
-    "setup_task": "把红色零件移动到检测区"
+    "task_id": "task_006",
+    "task_type": "status",
+    "input": "读取机器人当前TCP位姿",
+    "expected_action": "GETPOSE",
+    "expected": {"tool": "robot_tool", "action": "get_pose"},
+    "evaluation": "execution_success"
   }
 ]

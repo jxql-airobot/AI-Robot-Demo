@@ -103,3 +103,12 @@ python experiments/scripts/stats.py --group backend       # 按后端分组
 10 条论文基础任务，字段：`id / name / task_type / input / expected`
 （期望工具/动作/召回，可选 `seed_memory` 预置记忆），覆盖
 基础运动 / 状态 / 规划 / 视觉 / 记忆(RAG) / 指代消解。
+
+## 论文任务集（tasks/，task_001~task_205 共 16 条）
+
+- `basic_tasks.json`：6 条基础运动/状态任务（HOME/MOVEJ/GETPOS/MOVEL/STATUS/GETPOSE）；
+- `complex_tasks.json`：5 条复杂规划任务（搬运流程/扫描报告/记忆驱动/多步执行）；
+- `knowledge_tasks.json`：5 条工业知识任务（RAG 问答，含预置工业知识 seed_memory）；
+- 字段：`task_id / task_type / input / expected_action / expected / evaluation`
+  （复杂任务另含 `expected_steps / min_steps`，知识任务含 `expected_keywords`）；
+- 任务集说明见 `tasks/README.md`。

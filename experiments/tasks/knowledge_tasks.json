@@ -1,0 +1,72 @@
+[
+  {
+    "task_id": "task_201",
+    "task_type": "knowledge",
+    "input": "MOVEJ和MOVEL有什么区别？",
+    "expected_keywords": ["MoveAbsJ", "MoveL", "关节", "直线"],
+    "seed_memory": [
+      {
+        "topic": "RAPID运动指令",
+        "content": "MOVEJ对应RAPID的MoveAbsJ，为关节插补运动；MOVEL对应MoveL，为TCP直线运动。直线运动需避免奇异区，本项目使用速度v1000、fine停止点。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_202",
+    "task_type": "knowledge",
+    "input": "机器人报警应该如何处理？",
+    "expected_keywords": ["50026", "50442", "ConfL", "奇点"],
+    "seed_memory": [
+      {
+        "topic": "机器人报警处理",
+        "content": "50026靠近奇点：避免腕部奇异姿态起步并使用SingArea\\Wrist；50442轴配置错误：使用ConfL\\Off自动选最近配置；41595客户端断开：HandleClient错误段自动清理；40195限制错误：SocketAccept使用WAIT_MAX无限等待。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_203",
+    "task_type": "knowledge",
+    "input": "执行直线运动需要注意哪些参数？",
+    "expected_keywords": ["位姿", "速度", "姿态", "毫米"],
+    "seed_memory": [
+      {
+        "topic": "直线运动参数",
+        "content": "MOVEL目标为TCP位姿：x,y,z单位米，rx,ry,rz为欧拉角（度）；速度v1000；角度全0时保持当前工具朝向；协议用米而RAPID内部用毫米，需换算。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_204",
+    "task_type": "knowledge",
+    "input": "RAPID Socket通信客户端断开如何处理？",
+    "expected_keywords": ["41595", "断开", "CloseClient"],
+    "seed_memory": [
+      {
+        "topic": "Socket断开处理",
+        "content": "客户端断开时报41595，RAPID的HandleClient错误段捕获后调用CloseClient关闭socket；服务端继续等待下一客户端；Python客户端断线自动重连最多3次。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_205",
+    "task_type": "knowledge",
+    "input": "机器人靠近奇点报50026如何避免？",
+    "expected_keywords": ["50026", "奇异", "非奇异", "SingArea"],
+    "seed_memory": [
+      {
+        "topic": "奇点避免",
+        "content": "IRB120的Home位腕部关节θ5=0处于奇异区，直线运动应先用MOVEJ到非奇异姿态（如[10,20,30,45,60,0]）再执行MOVEL，并配合SingArea\\Wrist处理。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  }
+]

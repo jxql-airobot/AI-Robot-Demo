@@ -1,0 +1,57 @@
+[
+  {
+    "task_id": "task_101",
+    "task_type": "complex_planning",
+    "input": "完成一个零件搬运流程",
+    "expected_steps": [
+      "移动到抓取位置",
+      "抓取零件",
+      "移动到放置位置",
+      "释放零件",
+      "返回等待位置"
+    ],
+    "min_steps": 2,
+    "expected": {"tool": "robot_tool"},
+    "evaluation": "plan_and_execution"
+  },
+  {
+    "task_id": "task_102",
+    "task_type": "complex_planning",
+    "input": "扫描工作台并报告所有零件位置",
+    "expected_steps": ["视觉扫描", "状态核对"],
+    "min_steps": 2,
+    "expected_tools": ["vision_tool", "environment_tool"],
+    "evaluation": "plan_and_execution"
+  },
+  {
+    "task_id": "task_103",
+    "task_type": "rag_planning",
+    "input": "把之前看到的红色零件移动到右侧区域",
+    "expected_steps": ["记忆召回", "直线搬运"],
+    "min_steps": 1,
+    "expected_recall": "红色零件",
+    "seed_memory": {
+      "topic": "红色零件",
+      "content": "位于右侧区域",
+      "category": "物体信息"
+    },
+    "expected": {"tool": "robot_tool", "action": "linear_move"},
+    "evaluation": "recall_and_execution"
+  },
+  {
+    "task_id": "task_104",
+    "task_type": "complex_planning",
+    "input": "让机器人移动到工作区域并读取当前状态",
+    "expected_steps": ["关节移动", "状态读取"],
+    "min_steps": 2,
+    "expected": {"tool": "robot_tool"},
+    "evaluation": "plan_and_execution"
+  },
+  {
+    "task_id": "task_105",
+    "task_type": "planning",
+    "input": "让机器人移动到工作区域",
+    "expected": {"tool": "robot_tool", "action": "joint_move"},
+    "evaluation": "execution_success"
+  }
+]
