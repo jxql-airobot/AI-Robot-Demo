@@ -1,34 +1,36 @@
-%%% Version:1.17
+%%% Version:1.20
 %%% Modified: 2026-08-04
 %%% Created: 2026-08-04
 % ============================================================
-% RobotStudio SocketServer - AI Agent 控制入口 (V6.0)
+% ABB RobotStudio SocketServer for AI Agent control (V6.1)
 % ============================================================
-% 作用：
-%   在 ABB 虚拟控制器内运行一个 TCP Socket 服务，
-%   接收 AI Agent（Python）发来的文本命令并执行机器人动作。
+% Purpose:
+%   Runs inside an ABB IRC5 Virtual Controller (RobotWare 6.08).
+%   Listens on TCP port 30000 and executes robot motions based on
+%   text commands sent by the Python client.
 %
-% 导入方法：
-%   1. RobotStudio 打开工作站 -> 双击"控制器"下的"RAPID"
-%   2. 右键任务 T_ROB1 -> 导入模块 -> 选择本文件 socket_server.mod
-%   3. 将模块中的 main 设为入口（程序指针 -> 从 main 启动）
+% Import:
+%   RAPID -> T_ROB1 -> right-click -> Load Module -> socket_server.mod
+% Run:
+%   PP to main -> Start
 %
-% 通信流程：
-%   Python 连接 127.0.0.1:30000
-%     -> 发送 HOME / MOVEJ j1,...,j6 / MOVEL x,y,z,rx,ry,rz / GETPOS / STATUS
-%     -> RAPID 执行并回复 OK j1,...,j6 或 ERROR <message>
+% Protocol (matches robotstudio/command_schema.py):
+%   Client -> HOME | MOVEJ j1,...,j6 | MOVEL x,y,z,rx,ry,rz | GETPOS | STATUS
+%   Server <- OK j1,...,j6 | ERROR <message>
 %
-% 协议与 robotstudio/command_schema.py 完全一致。
-% 注意：本模板使用 tool0 与 v1000，实际使用请按工作站的工具/速度调整。
+% Socket instructions used (RobotWare 6 standard):
+%   SocketCreate, SocketBind, SocketListen, SocketAccept,
+%   SocketReceive, SocketSend, SocketClose
+%
+% NOTE: uses tool0 and v1000; adjust for your station if needed.
 % ============================================================
 
-MODULE SocketServer
+MODULE socket_server
 
     VAR socketdev client_socket;
     VAR socketdev server_socket;
     VAR string received_string;
     VAR num joint_angles{6};
-    VAR bool running;
 
     PROC main()
         VAR string reply;
@@ -36,27 +38,39 @@ MODULE SocketServer
         SocketCreate server_socket;
         SocketBind server_socket, "0.0.0.0", 30000;
         SocketListen server_socket;
-        TPWrite "AI Agent SocketServer 等待连接 (端口 30000)";
+        TPWrite "AI Agent SocketServer listening on port 30000";
+
+    main_loop:
+        SocketAccept server_socket, client_socket;
+        TPWrite "Client connected";
 
         WHILE TRUE DO
-            SocketAccept server_socket, client_socket;
-            TPWrite "客户端已连接";
-            running := TRUE;
-            WHILE running DO
-                received_string := "";
-                SocketReceive client_socket \Str:=received_string;
-                reply := HandleCommand(received_string);
-                SocketSend client_socket \Str:=reply;
-            ENDWHILE
-            SocketClose client_socket;
+            received_string := "";
+            SocketReceive client_socket \Str:=received_string;
+            reply := HandleCommand(received_string);
+            SocketSend client_socket \Str:=reply;
         ENDWHILE
+
+    ERROR
+        ! Client disconnected or socket error: close and wait for next client
+        SocketClose client_socket;
+        GOTO main_loop;
     ENDPROC
 
     FUNC string HandleCommand(string cmd)
         VAR string command;
         VAR num pos;
 
-        cmd := StrPart(cmd, 1, StrLen(cmd));
+        ! Remove trailing CR/LF characters sent by the client
+    trim_loop:
+        IF StrLen(cmd) > 0 THEN
+            IF StrPart(cmd, StrLen(cmd), 1) = "\0A" OR
+               StrPart(cmd, StrLen(cmd), 1) = "\0D" THEN
+                cmd := StrPart(cmd, 1, StrLen(cmd)-1);
+                GOTO trim_loop;
+            ENDIF
+        ENDIF
+
         pos := StrFind(cmd, " ");
         IF pos > 0 THEN
             command := StrPart(cmd, 1, pos-1);
@@ -64,24 +78,24 @@ MODULE SocketServer
             command := cmd;
         ENDIF
 
-        IF StrMatch(command, "HOME") THEN
+        IF command = "HOME" THEN
             MoveAbsJ [[0,0,0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]], v1000, fine, tool0;
             RETURN "OK 0,0,0,0,0,0";
-        ELSEIF StrMatch(command, "MOVEJ") THEN
+        ELSEIF command = "MOVEJ" THEN
             IF ParseJoints(cmd) THEN
                 MoveAbsJ [[joint_angles{1},joint_angles{2},joint_angles{3},
                           joint_angles{4},joint_angles{5},joint_angles{6}],
                           [9E9,9E9,9E9,9E9,9E9,9E9]], v1000, fine, tool0;
                 RETURN "OK " + JointString();
             ELSE
-                RETURN "ERROR MOVEJ 参数无法解析";
+                RETURN "ERROR MOVEJ cannot parse parameters";
             ENDIF
-        ELSEIF StrMatch(command, "MOVEL") THEN
+        ELSEIF command = "MOVEL" THEN
             RETURN "OK " + JointString();
-        ELSEIF StrMatch(command, "GETPOS") OR StrMatch(command, "STATUS") THEN
+        ELSEIF command = "GETPOS" OR command = "STATUS" THEN
             RETURN "OK " + JointString();
         ELSE
-            RETURN "ERROR 未知命令: " + cmd;
+            RETURN "ERROR unknown command: " + command;
         ENDIF
     ENDFUNC
 
