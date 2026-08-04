@@ -40,7 +40,7 @@ def test_mock():
     for action in (
         {"action": "move_home"},
         {"action": "joint_move", "joints": [10, 20, 30, 0, 0, 0]},
-        {"action": "linear_move", "target": [0.5, 0, 0.5, 0, 0, 0]},
+        {"action": "linear_move", "target": [0.3, 0, 0.3, 0, 0, 0]},
     ):
         reply = client.send_action(action)
         assert reply["ok"], f"{action} 执行失败: {reply}"
@@ -61,6 +61,17 @@ def test_real(host, port, timeout):
         reply = client.send_action({"action": "move_home"})
         assert reply["ok"], f"move_home 失败: {reply}"
         print(f"[OK] move_home 执行成功: {reply['message']}")
+        reply = client.send_action(
+            {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
+        )
+        assert reply["ok"], f"linear_move 失败: {reply}"
+        print(f"[OK] linear_move 执行成功: {reply['message']}")
+        reply = client.send_action({"action": "get_position"})
+        assert reply["ok"], f"get_position 失败: {reply}"
+        print(f"[OK] 直线运动后关节真值: {reply['joints']}")
+        reply = client.send_action({"action": "move_home"})
+        assert reply["ok"], f"move_home(回零) 失败: {reply}"
+        print(f"[OK] move_home 回零成功: {reply['message']}")
         client.close()
         return True
     except Exception as exc:

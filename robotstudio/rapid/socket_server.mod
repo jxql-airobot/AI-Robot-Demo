@@ -4,6 +4,8 @@ MODULE socket_server
     VAR socketdev server_socket;
     VAR string received_string;
     VAR num joint_angles{6};
+    VAR robtarget pose_target := [[0,0,0],[1,0,0,0],[0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
+    VAR jointtarget current_jt;
 
     PROC socket_main()
         SocketCreate server_socket;
@@ -88,12 +90,19 @@ MODULE socket_server
                 RETURN "ERROR MOVEJ cannot parse parameters";
             ENDIF
         ELSEIF command = "MOVEL" THEN
-            RETURN "OK " + JointString();
+            IF ParsePose(cmd) THEN
+                MoveL pose_target, v1000, fine, tool0;
+                RETURN "OK " + JointString();
+            ELSE
+                RETURN "ERROR MOVEL cannot parse parameters";
+            ENDIF
         ELSEIF command = "GETPOS" OR command = "STATUS" THEN
             RETURN "OK " + JointString();
         ELSE
             RETURN "ERROR unknown command: " + command;
         ENDIF
+    ERROR
+        RETURN "ERROR RAPID error " + NumToStr(ERRNO,0);
     ENDFUNC
 
     FUNC bool ParseJoints(string cmd)
@@ -127,11 +136,54 @@ MODULE socket_server
         RETURN TRUE;
     ENDFUNC
 
+    FUNC bool ParsePose(string cmd)
+        VAR num pos;
+        VAR num i;
+        VAR string body;
+        VAR bool ok;
+        VAR num vals{6};
+
+        pos := StrMatch(cmd, 1, " ");
+        IF pos <= 0 THEN
+            RETURN FALSE;
+        ENDIF
+        body := StrPart(cmd, pos+1, StrLen(cmd)-pos);
+
+        FOR i FROM 1 TO 6 DO
+            IF StrLen(body) = 0 THEN
+                RETURN FALSE;
+            ENDIF
+            pos := StrMatch(body, 1, ",");
+            IF pos > 1 AND pos < StrLen(body) THEN
+                ok := StrToVal(StrPart(body, 1, pos-1), vals{i});
+                body := StrPart(body, pos+1, StrLen(body)-pos);
+            ELSE
+                ok := StrToVal(body, vals{i});
+                body := "";
+            ENDIF
+            IF NOT ok THEN
+                RETURN FALSE;
+            ENDIF
+        ENDFOR
+
+        pose_target.trans.x := vals{1};
+        pose_target.trans.y := vals{2};
+        pose_target.trans.z := vals{3};
+        ! rx=roll(X) ry=pitch(Y) rz=yaw(Z), degrees; OrientZYX uses Z-Y-X order
+        pose_target.rot := OrientZYX(vals{6}, vals{5}, vals{4});
+        RETURN TRUE;
+    ENDFUNC
+
     FUNC string JointString()
         VAR string s;
-        s := NumToStr(joint_angles{1},2) + "," + NumToStr(joint_angles{2},2) + "," +
-             NumToStr(joint_angles{3},2) + "," + NumToStr(joint_angles{4},2) + "," +
-             NumToStr(joint_angles{5},2) + "," + NumToStr(joint_angles{6},2);
+        ! CJointT() reads the actual measured joint angles (truth readback)
+        current_jt := CJointT();
+        s := NumToStr(current_jt.robax.rax_1,2) + "," +
+             NumToStr(current_jt.robax.rax_2,2) + "," +
+             NumToStr(current_jt.robax.rax_3,2) + "," +
+             NumToStr(current_jt.robax.rax_4,2) + "," +
+             NumToStr(current_jt.robax.rax_5,2) + "," +
+             NumToStr(current_jt.robax.rax_6,2);
         RETURN s;
     ENDFUNC
 

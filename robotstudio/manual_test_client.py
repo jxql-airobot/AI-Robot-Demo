@@ -55,9 +55,10 @@ def main():
         ("GETPOS", {"action": "get_position"}),
         ("HOME", {"action": "move_home"}),
         ("MOVEJ", {"action": "joint_move", "joints": [10, 20, 30, 0, 0, 0]}),
-        ("MOVEL", {"action": "linear_move", "target": [0.5, 0.0, 0.5, 0.0, 0.0, 0.0]}),
+        ("MOVEL", {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}),
         ("STATUS", {"action": "status"}),
         ("GETPOS", {"action": "get_position"}),
+        ("HOME", {"action": "move_home"}),
     ]
     all_ok = True
     for name, action in steps:

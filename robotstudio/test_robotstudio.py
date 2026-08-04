@@ -29,6 +29,9 @@ def test_schema():
     assert build_command({"action": "joint_move", "joints": [1, 2, 3, 4, 5, 6]}) == (
         "MOVEJ 1.0,2.0,3.0,4.0,5.0,6.0\n"
     )
+    assert build_command(
+        {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
+    ) == "MOVEL 0.3,0.0,0.3,0.0,0.0,0.0\n"
     assert build_command({"action": "get_position"}) == "GETPOS\n"
     ok = parse_reply("OK 0.0,0.0,0.0,0.0,0.0,0.0")
     assert ok["ok"] and ok["joints"] == [0.0] * 6
@@ -54,6 +57,17 @@ def test_client_mock_loop():
     assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
     reply = client.send_action({"action": "status"})
     assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+
+    reply = client.send_action(
+        {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
+    )
+    assert reply["ok"], reply
+    assert reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    reply = client.send_action(
+        {"action": "linear_move", "target": [0.3, 0.0]}
+    )
+    assert not reply["ok"] and "6" in reply["message"], reply
+
     client.close()
     assert not client.connected
     print("[OK] 客户端 + Mock 服务端闭环测试通过")
@@ -64,6 +78,11 @@ def test_backend():
 
     backend = RobotStudioBackend()
     out = backend.execute({"action": "move_home"})
+    assert out["ok"], out
+    assert out["joints"] == [0.0] * 6
+    out = backend.execute(
+        {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
+    )
     assert out["ok"], out
     assert out["joints"] == [0.0] * 6
     state = backend.get_state()

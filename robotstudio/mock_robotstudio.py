@@ -24,6 +24,7 @@ class MockRobotStudioServer:
         self.host = host
         self.port = port
         self.joints = [0.0] * 6      # 当前关节角度
+        self.pose = [0.0] * 6        # 最近一次 MOVEL 目标位姿 (x,y,z,rx,ry,rz)
         self.last_action = None      # 最后执行的动作
         self._server = None
         self._thread = None
@@ -101,8 +102,15 @@ class MockRobotStudioServer:
             except ValueError:
                 return "ERROR MOVEJ 参数无法解析"
         if cmd.startswith("MOVEL"):
-            self.last_action = "linear_move"
-            return f"OK {','.join(str(j) for j in self.joints)}"
+            try:
+                values = [float(x) for x in cmd[5:].strip().split(",")]
+                if len(values) != 6:
+                    return "ERROR MOVEL 需要 6 个位姿参数 (x,y,z,rx,ry,rz)"
+                self.pose = values
+                self.last_action = "linear_move"
+                return f"OK {','.join(str(j) for j in self.joints)}"
+            except ValueError:
+                return "ERROR MOVEL 参数无法解析"
         if cmd == "GETPOS" or cmd == "STATUS":
             return f"OK {','.join(str(j) for j in self.joints)}"
         return f"ERROR 未知命令: {cmd}"
