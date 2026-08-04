@@ -196,6 +196,8 @@ python robotstudio/manual_test_client.py --real
 | 161 选项缺失，SocketCreate 需要 PC | 系统缺 616-1 PC Interface | 系统选项 -> 通信 -> 勾选 616-1 |
 | 41595 套接字错误 | 客户端断开 | 已由 ERROR 段处理，无需操作 |
 | 41581 套接字错误 | SocketAccept 等待超时（默认 60s） | 已由 ERROR 段 RETRY 继续等待 |
+| 40195 限制错误 | RETRY 超过 `NoOfRetry`（默认 4）；空闲约 5 分钟（连续 5 次 60s 超时）后触发 | `SocketAccept \Time:=WAIT_MAX` 无限等待，不再有超时（V6.2 已用） |
+| 40228 执行错误 | 40195 未被处理导致程序停止 | 同上，WAIT_MAX 后不再出现 |
 | 41600 套接字错误 | 客户端套接字未关闭 | 会话结束 SocketClose（已实现） |
 | 41603 套接字错误 | socket 已创建未关闭 | 重新加载模块或重置程序 |
 | 语法错误(1,1) 预期值 module | BOM/文件头注释 | 文件以 MODULE 开头、无 BOM |
