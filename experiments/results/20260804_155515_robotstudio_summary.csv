@@ -1,0 +1,9 @@
+id,category,task,rounds,success_rate,avg_total_s,avg_plan_s,avg_exec_s,rag_recall_rate,failure_reasons
+rs_home,基础运动,回到Home位置,1,1.0,0.0,0.0,0.0,,[]
+rs_joint_move,基础运动,移动机器人到指定点,1,1.0,0.015,0.0,0.015,,[]
+rs_linear_move,基础运动,执行直线移动到目标点,1,1.0,0.016,0.0,0.016,,[]
+rs_status,基础运动,读取机器人当前状态,1,1.0,0.0,0.0,0.0,,[]
+rs_plan_move,Agent规划任务,让机器人移动到工作区域,1,1.0,0.0,0.0,0.0,,[]
+rs_vision,视觉任务,找到红色零件位置,1,1.0,0.0,0.0,0.0,1.0,[]
+rs_memory_recall,记忆任务,之前看到的红色零件在哪里,1,1.0,0.0,0.0,0.0,1.0,[]
+rs_memory_move,记忆任务,把之前看到的红色零件移动到右侧区域,1,1.0,0.0,0.0,0.0,1.0,[]

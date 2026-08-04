@@ -1,0 +1,106 @@
+{
+  "generated_at": "20260804_152538",
+  "backend": "mock",
+  "planner": "robotstudio",
+  "rounds": 1,
+  "overall_success_rate": 1.0,
+  "overall_avg_total_s": 0.0059,
+  "tasks": [
+    {
+      "id": "rs_home",
+      "category": "基础运动",
+      "task": "回到Home位置",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.031,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.031,
+      "rag_recall_rate": null,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_joint_move",
+      "category": "基础运动",
+      "task": "移动机器人到指定点",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": null,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_linear_move",
+      "category": "基础运动",
+      "task": "执行直线移动到目标点",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": null,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_status",
+      "category": "基础运动",
+      "task": "读取机器人当前状态",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": null,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_plan_move",
+      "category": "Agent规划任务",
+      "task": "让机器人移动到工作区域",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": null,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_vision",
+      "category": "视觉任务",
+      "task": "找到红色零件位置",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.016,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.016,
+      "rag_recall_rate": 1.0,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_memory_recall",
+      "category": "记忆任务",
+      "task": "之前看到的红色零件在哪里",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": 1.0,
+      "failure_reasons": []
+    },
+    {
+      "id": "rs_memory_move",
+      "category": "记忆任务",
+      "task": "把之前看到的红色零件移动到右侧区域",
+      "rounds": 1,
+      "success_rate": 1.0,
+      "avg_total_s": 0.0,
+      "avg_plan_s": 0.0,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": 1.0,
+      "failure_reasons": []
+    }
+  ]
+}

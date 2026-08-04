@@ -1,0 +1,9 @@
+id,category,round,success,total_s,plan_s,exec_s,goal,steps_detail,recall,failure_reason
+rs_home,基础运动,1,True,0.0,0.0,0.0,机器人回到 Home 位置,robot_tool(ok),,
+rs_joint_move,基础运动,1,True,0.015,0.0,0.015,移动到指定点,robot_tool(ok),,
+rs_linear_move,基础运动,1,True,0.016,0.0,0.016,直线移动到指定点,robot_tool(ok),,
+rs_status,基础运动,1,True,0.0,0.0,0.0,读取机器人当前状态（关节真值）,robot_tool(ok),,
+rs_plan_move,Agent规划任务,1,True,0.0,0.0,0.0,移动到指定点,robot_tool(ok),,
+rs_vision,视觉任务,1,True,0.0,0.0,0.0,定位目标位置,vision_tool(ok) | environment_tool(ok),True,
+rs_memory_recall,记忆任务,1,True,0.0,0.0,0.0,定位目标位置,vision_tool(ok) | environment_tool(ok),True,
+rs_memory_move,记忆任务,1,True,0.0,0.0,0.0,把 红色零件 移动到目标位置（记忆：位于右侧区域）,robot_tool(ok),True,
