@@ -112,3 +112,17 @@ python experiments/scripts/stats.py --group backend       # 按后端分组
 - 字段：`task_id / task_type / input / expected_action / expected / evaluation`
   （复杂任务另含 `expected_steps / min_steps`，知识任务含 `expected_keywords`）；
 - 任务集说明见 `tasks/README.md`。
+
+## DeepSeek 规划器实验（--planner deepseek）
+
+`run_task_sets.py` 支持 LLM 规划器入口：
+
+```bash
+python experiments/scripts/run_task_sets.py --tasks complex --planner deepseek --backend real --rounds 3
+python experiments/scripts/run_task_sets.py --tasks variant --rounds 3        # 语言泛化对比
+python experiments/scripts/run_task_sets.py --tasks variant --planner deepseek --rounds 3
+```
+
+- 实验报告：`docs/thesis/results/planner_comparison_results.md`
+- 对比图：`docs/thesis/images/thesis_planner_comparison.png`
+- 结果：语言变体 规则 4% vs LLM 88%（平均 93%）；真实 RobotStudio 11/11 100%

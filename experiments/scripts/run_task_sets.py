@@ -402,12 +402,15 @@ def run_knowledge(tasks, rounds):
     return rows
 
 
-def run_variants(rounds):
+def run_variants(rounds, planner_filter=None):
     """语言变体对比实验：同一意图多种自然说法，规则规划器 vs LLM 规划器。
 
     变体刻意避开规则规划器的关键词，用于证明 LLM 智能体对自然语言变体的
     理解能力（规则匹配会失败，语义理解能成功）。使用 mock 后端，隔离
     “规划能力”这一变量（执行链路两种规划器完全一致）。
+
+    planner_filter: None 时两种规划器都跑（对比）；指定 "robotstudio" 或
+    "deepseek" 时只跑指定规划器（配合 --planner 使用）。
     """
     tasks = load_tasks("variant")
     seeds = collect_seeds(tasks)
@@ -418,6 +421,8 @@ def run_variants(rounds):
     }
     all_rows = []
     for planner_name, planner in planners.items():
+        if planner_filter and planner_name != planner_filter:
+            continue
         rows = []
         for task in tasks:
             exp = task.get("expected") or {}
@@ -493,7 +498,7 @@ def main():
     parser.add_argument("--tasks", default="all",
                         choices=["all", "basic", "complex", "knowledge", "variant"])
     parser.add_argument("--backend", default="mock", choices=["mock", "real"])
-    parser.add_argument("--planner", default="robotstudio",
+    parser.add_argument("--planner", default=None,
                         choices=["robotstudio", "deepseek"])
     parser.add_argument("--rounds", type=int, default=3)
     args = parser.parse_args()
@@ -505,17 +510,17 @@ def main():
     if args.tasks in ("all", "basic"):
         print("[基础运动]")
         run_basic_complex("basic", load_tasks("basic"), args.backend,
-                          args.planner, args.rounds)
+                          args.planner or "robotstudio", args.rounds)
     if args.tasks in ("all", "complex"):
         print("[复杂规划]")
         run_basic_complex("complex", load_tasks("complex"), args.backend,
-                          args.planner, args.rounds)
+                          args.planner or "robotstudio", args.rounds)
     if args.tasks in ("all", "knowledge"):
         print("[工业知识 RAG 问答]")
         run_knowledge(load_tasks("knowledge"), args.rounds)
     if args.tasks in ("all", "variant"):
         print("[语言变体对比：规则规划器 vs LLM 规划器]")
-        run_variants(args.rounds)
+        run_variants(args.rounds, planner_filter=args.planner)
     print("[任务集] 完成")
 
 
