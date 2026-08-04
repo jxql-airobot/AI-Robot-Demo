@@ -70,9 +70,9 @@ WS_EMPTY = "（空）"
 
 # ---------- 记忆查看区 ----------
 MEM_SUBHEADER = "记忆查看（只读）"
-MEM_CAPTION = "查看和查询 SQLite 记忆；V5.1 暂不提供删除功能。"
+MEM_CAPTION = "查看和查询记忆，支持 RAG 语义检索；暂不提供删除功能。"
 MEM_SEARCH_LABEL = "关键词查询"
-MEM_SEARCH_PLACEHOLDER = "例如：零件 / 区域 / 检测区"
+MEM_SEARCH_PLACEHOLDER = "语义检索：例如：那个红色东西在哪里"
 MEM_FILTER_LABEL = "分类筛选"
 MEM_CATEGORIES = ["环境信息", "物体信息", "用户知识"]
 MEM_EMPTY = "暂无记忆。"
@@ -80,6 +80,7 @@ MEM_COUNT = "共 {count} 条"
 MEM_COL_TOPIC = "主题"
 MEM_COL_CONTENT = "内容"
 MEM_COL_CATEGORY = "分类"
+MEM_COL_SOURCE = "来源"
 
 # ---------- 视觉感知区 ----------
 VIS_SUBHEADER = "视觉感知（识别结果）"

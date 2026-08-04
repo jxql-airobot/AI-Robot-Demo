@@ -54,6 +54,10 @@ class AgentBackend:
         """按关键词查询记忆 [(topic, content, category), ...]"""
         raise NotImplementedError
 
+    def semantic_search(self, query):
+        """V5.3: 混合检索记忆 [{"topic", "content", "category", "source"}, ...]"""
+        raise NotImplementedError
+
     def close(self):
         """释放资源"""
         pass
@@ -107,6 +111,10 @@ class Ros2Backend(AgentBackend):
         if not query:
             return self.memory.all_memories()
         return self.memory.search(query, limit=50)
+
+    def semantic_search(self, query):
+        """V5.3: 走 Agent 的 RAG 混合检索，结果带来源"""
+        return self.agent.retrieve_memories(query, top_k=20)
 
     def close(self):
         self.agent.close()

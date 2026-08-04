@@ -8,6 +8,7 @@ core.py — Agent 主类 (V5.2)
 """
 
 import os
+import logging
 
 from agent.context import AgentContext
 from agent.executor import PlanExecutor
@@ -24,6 +25,7 @@ from agent.tools.robot_tool import (
 from agent.tools.vision_tool import VisionTool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logger = logging.getLogger(__name__)
 
 
 def _default_db_path():
@@ -48,6 +50,10 @@ class Agent:
         self.db_path = db_path or _default_db_path()
         self.memory = MemoryStore(self.db_path)
         self.ros2_client = None
+        self.embedder = None
+        self.vector_store = None
+        self.retriever = None
+        self._init_rag()
 
         if backend == "ros2":
             if ros2_client is None:
@@ -68,7 +74,12 @@ class Agent:
             environment = EnvironmentTool(robot=robot_backend, memory=self.memory)
 
         self.registry = {
-            "memory_tool": MemoryTool(self.memory),
+            "memory_tool": MemoryTool(
+                self.memory,
+                vector_store=self.vector_store,
+                embedder=self.embedder,
+                retriever=self.retriever,
+            ),
             "robot_tool": RobotTool(robot_backend),
             "vision_tool": vision,
             "environment_tool": environment,
@@ -77,11 +88,37 @@ class Agent:
         self.planner = planner or build_plan_planner(self.registry)
         self.executor = PlanExecutor(self.registry)
 
+    def _init_rag(self):
+        """初始化 RAG（模型可用时）；失败自动降级为关键词检索"""
+        try:
+            import importlib.util
+
+            if importlib.util.find_spec("sentence_transformers") is None:
+                return  # 未安装 RAG 依赖，跳过
+            from agent.rag.embedder import Embedder
+            from agent.rag.model_download import ensure_model
+            from agent.rag.retriever import HybridRetriever
+            from agent.rag.vector_store import VectorStore
+
+            ensure_model()
+            self.embedder = Embedder()
+            self.vector_store = VectorStore(self.db_path)
+            self.vector_store.rebuild(self.memory, self.embedder)
+            self.retriever = HybridRetriever(
+                self.vector_store, self.memory, self.embedder
+            )
+        except Exception as exc:
+            logger.warning("RAG 初始化失败，降级为关键词检索: %s", exc)
+            self.embedder = None
+            self.vector_store = None
+            self.retriever = None
+
     def handle(self, task):
         """处理一条自然语言任务，返回 AgentResponse"""
         resolved = self.context.resolve_reference(task)
         self.context.update_task(resolved)
-        plan = normalize_plan(self.planner.plan(resolved, self.context))
+        memory_text = self._retrieve_memories(resolved)
+        plan = normalize_plan(self.planner.plan(resolved, self.context, memory_text))
         step_results = self.executor.execute(plan)
         final_message = self._summarize(plan, step_results)
         current_state = self._extract_state(step_results)
@@ -92,6 +129,29 @@ class Agent:
             "final_message": final_message,
             "current_state": current_state,
         }
+
+    def retrieve_memories(self, query, top_k=10):
+        """供 GUI 记忆页使用：返回带来源的混合检索结果"""
+        if self.retriever is not None:
+            try:
+                return self.retriever.retrieve(query, top_k=top_k)
+            except Exception:
+                pass
+        return [
+            {"topic": t, "content": c, "category": cat, "source": "关键词检索"}
+            for t, c, cat in self.memory.search(query, limit=top_k)
+        ]
+
+    def _retrieve_memories(self, query):
+        """规划时注入相关记忆文本（RAG 优先，关键词兜底）"""
+        rows = self.retrieve_memories(query, top_k=5)
+        if not rows:
+            return "（无相关记忆）"
+        lines = [
+            f"- {r['topic']}：{r['content']}（{r['category']}）[来源：{r['source']}]"
+            for r in rows
+        ]
+        return "\n".join(lines)
 
     def _summarize(self, plan, results):
         if not results:

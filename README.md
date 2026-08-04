@@ -88,7 +88,7 @@ ROS2 设计、Gazebo 设计、实验记录、版本历史、研究介绍、学�
 | V4 | Gazebo仿真（视觉 + 导航） | ✅ |
 | V5.1 | Streamlit GUI图形界面 | ✅ |
 | V5.2 | Agent任务规划能力增强 | ✅ |
-| V5.3 | RAG语义记忆系统 | 🚧 进行中 |
+| V5.3 | RAG语义记忆系统 | ✅ |
 
 Git Tag：`v4.0-gazebo` → `v5.1-gui` → `v5.2-agent` →（`v5.3-rag`）
 

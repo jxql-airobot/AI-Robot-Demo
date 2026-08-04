@@ -24,6 +24,8 @@ SYSTEM_PROMPT = """你是 AI Robot 智能体的任务规划器。
 - steps: 执行步骤数组，每步 {"tool": 工具名, "args": {...}, "purpose": "这步要做什么"}
 - current_state: 当前已知状态（使用上下文；未知则写"未知"）
 
+可参考"相关记忆"中的历史知识生成计划。
+
 可用工具:
 {tools}
 
@@ -52,9 +54,13 @@ class DeepSeekPlanPlanner:
         self.model = cfg["model"]
         self.tools_text = _tool_descriptions(registry)
 
-    def plan(self, task, context):
+    def plan(self, task, context, memory_text=""):
         system_prompt = SYSTEM_PROMPT.replace("{tools}", self.tools_text)
-        user_text = f"用户任务: {task}\n\n会话上下文:\n{context.format_for_planner()}"
+        memory_section = memory_text if memory_text else "（无相关记忆）"
+        user_text = (
+            f"用户任务: {task}\n\n相关记忆:\n{memory_section}\n\n"
+            f"会话上下文:\n{context.format_for_planner()}"
+        )
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -79,10 +85,18 @@ class MockPlanPlanner:
     PARTS = ["红色零件", "蓝色零件", "绿色零件"]
     STATIONS = ["上料区", "检测区", "成品区"]
 
-    def plan(self, task, context):
+    def plan(self, task, context, memory_text=""):
         text = task
         part = next((p for p in self.PARTS if p in text), None)
         station = next((s for s in self.STATIONS if s in text), None)
+        # 从记忆文本中提取主题（形如 "- A区域：生产线左侧（环境信息）..."）
+        topics = []
+        for line in memory_text.splitlines():
+            line = line.strip()
+            if line.startswith("- ") and "：" in line:
+                topics.append(line[2:].split("：")[0])
+        if station is None:
+            station = next((t for t in topics if t in text), None)
         current_state = context.current_state or "未知"
 
         # 记住指令 -> 写入记忆

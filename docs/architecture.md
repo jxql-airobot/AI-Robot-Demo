@@ -63,8 +63,8 @@ flowchart TD
 - V1-V4（LLM 规划 / Memory / ROS2 / Gazebo）：已完成并实测通过
 - V5.1（GUI）：已完成，5 个标签页，中文界面
 - V5.2（Agent）：已完成，四工具 + 可解释 Plan
-- V5.3（RAG）：基础模块已完成（embedder / vector_store / retriever），
-  已通过「那个红色东西在哪里 → 红色零件」语义召回测试；与 Agent/GUI 的完整集成进行中
+- V5.3（RAG）：已完成——embedder / vector_store / retriever + Agent/GUI 集成，
+  通过「那个红色东西在哪里 → 红色零件」语义召回测试
 - V6（真实机械臂）、V7（工业应用）：规划中
 
 ## 5. 未来扩展方向

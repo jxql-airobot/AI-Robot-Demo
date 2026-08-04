@@ -55,6 +55,17 @@ class VectorStore:
         conn.close()
         return len(rows)
 
+    def add(self, topic, content, category, vec):
+        """新增一条记忆向量（memory_tool 写记忆时同步调用）"""
+        conn = sqlite3.connect(self.db_path)
+        conn.execute(
+            "INSERT INTO memories_embeddings (topic, content, category, embedding)"
+            " VALUES (?, ?, ?, ?)",
+            (topic, content, category, np.asarray(vec, dtype=np.float32).tobytes()),
+        )
+        conn.commit()
+        conn.close()
+
     def search(self, query_vec, top_k=5):
         """按余弦相似度返回 top-k 记忆（query_vec 需归一化）"""
         query = np.asarray(query_vec, dtype=np.float32).reshape(-1)

@@ -67,8 +67,8 @@ CREATE TABLE memories_embeddings (
 
 ## 5. 未来扩展方向
 
-- Agent/planner 上下文注入 RAG 检索结果（集成进行中）
-- GUI 记忆页展示语义检索结果（来源/内容，不显示复杂相似度数字）
+- Agent/planner 上下文注入 RAG 检索结果（✅ 已完成）
+- GUI 记忆页展示语义检索结果（来源/内容，不显示复杂相似度数字）（✅ 已完成）
 - 记忆增量更新（新增记忆只嵌入新条目，不重建全表）
 - 向量索引升级（数据量大时引入 FAISS/Chroma）
 - 多语言/更大模型（bge-large 等）切换

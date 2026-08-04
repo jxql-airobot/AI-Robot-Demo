@@ -196,23 +196,32 @@ with tab_mem:
     query = st.text_input(L.MEM_SEARCH_LABEL, placeholder=L.MEM_SEARCH_PLACEHOLDER)
     categories = st.multiselect(L.MEM_FILTER_LABEL, L.MEM_CATEGORIES, default=[])
 
-    rows = backend.search_memories(query) if query.strip() else backend.list_memories()
+    if query.strip():
+        rows = backend.semantic_search(query)
+    else:
+        rows = [
+            {"topic": t, "content": c, "category": cat, "source": "记忆库"}
+            for t, c, cat in backend.list_memories()
+        ]
     if categories:
-        rows = [r for r in rows if r[2] in categories]
+        rows = [r for r in rows if r.get("category") in categories]
 
     if not rows:
         st.info(L.MEM_EMPTY)
     else:
         st.caption(L.MEM_COUNT.format(count=len(rows)))
+        has_source = any(r.get("source") for r in rows)
+        table_rows = [
+            {
+                L.MEM_COL_TOPIC: r.get("topic", ""),
+                L.MEM_COL_CONTENT: r.get("content", ""),
+                L.MEM_COL_CATEGORY: r.get("category", ""),
+                **({L.MEM_COL_SOURCE: r.get("source", "")} if has_source else {}),
+            }
+            for r in rows
+        ]
         st.dataframe(
-            [
-                {
-                    L.MEM_COL_TOPIC: topic,
-                    L.MEM_COL_CONTENT: content,
-                    L.MEM_COL_CATEGORY: category,
-                }
-                for topic, content, category in rows
-            ],
+            table_rows,
             width="stretch",
             hide_index=True,
         )
