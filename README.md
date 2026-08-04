@@ -3,6 +3,8 @@
 基于大语言模型的机器人智能体任务规划系统：
 自然语言 → AI Agent 可解释规划 → 工具调用 → ROS2 通信 → Gazebo 仿真执行 → 状态反馈。
 
+> [English README](README_en.md) · [License](LICENSE) · [Contribute](CONTRIBUTING.md)
+
 ## 项目介绍
 
 本项目是一个从零搭建的 **LLM + Agent + RAG + 机器人仿真** 完整闭环系统。
@@ -89,6 +91,7 @@ ROS2 设计、Gazebo 设计、实验记录、版本历史、研究介绍、学�
 | V5.1 | Streamlit GUI图形界面 | ✅ |
 | V5.2 | Agent任务规划能力增强 | ✅ |
 | V5.3 | RAG语义记忆系统 | ✅ |
+| V5.4 | Agent评测体系（任务集+自动评测） | ✅ |
 
 Git Tag：`v4.0-gazebo` → `v5.1-gui` → `v5.2-agent` →（`v5.3-rag`）
 
