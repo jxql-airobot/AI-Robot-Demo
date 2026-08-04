@@ -18,7 +18,10 @@ MODULE socket_server
         TPWrite "AI Robot SocketServer listening on port 30000";
 
         WHILE TRUE DO
-            SocketAccept server_socket, client_socket;
+            ! WAIT_MAX: wait forever for clients. The default 60s timeout
+            ! raised 41581 -> RETRY -> exceeded NoOfRetry (default 4) after
+            ! ~5 idle minutes -> 40195 limit error -> program stopped.
+            SocketAccept server_socket, client_socket \Time:=WAIT_MAX;
             TPWrite "Client connected";
             HandleClient;
             CloseClient;
