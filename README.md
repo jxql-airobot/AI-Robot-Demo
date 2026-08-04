@@ -106,6 +106,24 @@ ros2 launch ai_robot demo_v4.launch.py
 
 另开终端输入 `红色零件在哪里`、`扫描工作台`，AI 会结合视觉记忆回答/规划。
 
+## V5.1 新增功能
+
+- **Streamlit GUI**：独立图形界面客户端（`gui/` 目录），不修改任何 V1-V4 代码
+- 五个页面：任务对话 / 工作台状态 / 记忆查看 / 视觉感知 / 机器人状态
+- ROS2 模式为主：发布 `/ai_robot/task`，订阅 `/ai_robot/status`、`/ai_robot/vision`、`/odom`
+- Local 模式（直接复用 V1/V2 单机版）为后续版本规划
+
+运行（WSL，需先启动仿真系统）：
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/ros2_ws/install/setup.bash
+cd /mnt/f/AI-Projects/AI-Robot-Demo
+python3 -m streamlit run gui/app.py
+```
+
+浏览器打开 http://localhost:8501
+
 ## 技术栈
 
 - Python 3.12

@@ -15,6 +15,7 @@ Streamlit GUI 与 ROS2 仿真系统之间的通信桥：
   - 视觉第一版只取识别结果文本（/ai_robot/vision），不做实时视频流（后续迭代）
 """
 
+import atexit
 import json
 import math
 import os
@@ -64,6 +65,9 @@ class Ros2Client:
             target=self._spin, name="gui-rclpy-spin", daemon=True
         )
         self._spin_thread.start()
+        self._closed = False
+        # 进程退出时自动清理，避免后台 spin 线程触发 rclpy 异常
+        atexit.register(self.close)
 
     # ---------- 后台 spin ----------
 
@@ -126,6 +130,9 @@ class Ros2Client:
 
     def close(self):
         """释放节点资源"""
+        if self._closed:
+            return
+        self._closed = True
         self._stop = True
         if hasattr(self, "node"):
             self.node.destroy_node()
