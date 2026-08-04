@@ -78,6 +78,9 @@ class Ros2Backend(AgentBackend):
         self.memory = MemoryStore(ROS2_DB_PATH)
         self.robot_backend = robot_backend
         self.last_result_message = ""
+        self.last_task = ""
+        self.last_success = None
+        self.last_exec_s = None
         self.client = None
         if robot_backend == "gazebo":
             from ros2_client import Ros2Client
@@ -99,7 +102,27 @@ class Ros2Backend(AgentBackend):
         """Agent 处理任务：生成可解释 Plan 并调用工具执行"""
         resp = self.agent.handle(task)
         self.last_result_message = resp.get("final_message", "")
+        self.last_task = task
+        steps = resp["plan"].get("steps", [])
+        self.last_success = bool(steps) and all(r.get("ok") for r in resp["step_results"])
+        timings = getattr(self.agent, "last_timings", {})
+        self.last_exec_s = timings.get("exec_seconds")
         return resp
+
+    def system_status(self):
+        """V6.2: 返回 {llm, rag, robot} 系统状态，供侧边栏显示"""
+        from agent.planner import DeepSeekPlanPlanner
+
+        llm = "OK" if isinstance(self.agent.planner, DeepSeekPlanPlanner) else "MOCK"
+        rag = "OK" if self.agent.retriever is not None else "DEGRADED"
+        robot = "CONNECTED"
+        try:
+            state = self.agent.registry["robot_tool"].backend.get_state()
+            if state is None or state.get("connected") is False:
+                robot = "OFF"
+        except Exception:
+            robot = "OFF"
+        return {"llm": llm, "rag": rag, "robot": robot}
 
     def send_task(self, text):
         self.client.send_task(text)

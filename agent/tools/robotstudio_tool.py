@@ -37,7 +37,12 @@ class RobotStudioBackend:
         )
 
     def execute(self, action):
-        """执行一条动作（move_home / joint_move / linear_move）"""
+        """执行一条动作（move_home / joint_move / linear_move）
+
+        V6.2 统一错误格式：返回含 success/error/stage
+        stage: "socket"（连接/通信失败）| "rapid"（RAPID 协议错误）
+               | "motion"（机器人运动错误）| "ok"
+        """
         try:
             self.client.connect()
             reply = self.client.send_action(action)
@@ -45,8 +50,17 @@ class RobotStudioBackend:
             message = reply.get("message") or (
                 "执行成功" if reply.get("ok") else "执行失败"
             )
+            if reply.get("ok"):
+                stage, error = "ok", ""
+            elif "RAPID error" in message:
+                stage, error = "motion", message
+            else:
+                stage, error = "rapid", message
             return {
                 "ok": bool(reply.get("ok")),
+                "success": bool(reply.get("ok")),
+                "error": error,
+                "stage": stage,
                 "messages": [message],
                 "workspace": {"关节位置": [str(j) for j in (reply.get("joints") or [])]},
                 "joints": reply.get("joints"),
@@ -55,6 +69,9 @@ class RobotStudioBackend:
         except Exception as exc:
             return {
                 "ok": False,
+                "success": False,
+                "error": str(exc),
+                "stage": "socket",
                 "messages": [f"RobotStudio 执行异常: {exc}"],
                 "workspace": None,
                 "joints": None,

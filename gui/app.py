@@ -62,7 +62,12 @@ def format_agent_plan(resp):
     for index, step in enumerate(plan.get("steps", []), 1):
         purpose = step.get("purpose", "")
         tool = step.get("tool", "")
-        lines.append(f"{index}. {purpose}（{L.AGENT_PLAN_TOOL}：{tool}）")
+        args = step.get("args", {})
+        args_text = json.dumps(args, ensure_ascii=False) if args else "{}"
+        lines.append(
+            f"{index}. {purpose}（{L.AGENT_PLAN_TOOL}：{tool}，"
+            f"{L.AGENT_PLAN_ARGS}：`{args_text}`）"
+        )
     lines.append(f"**{L.AGENT_PLAN_CURRENT_STATE}**：{plan.get('current_state', '')}")
     return "\n".join(lines)
 
@@ -70,9 +75,15 @@ def format_agent_plan(resp):
 def format_agent_results(resp):
     """把工具执行结果格式化成聊天文本"""
     lines = [f"**{L.AGENT_RESULT_TITLE}**"]
-    for r in resp["step_results"]:
+    plan_steps = resp["plan"].get("steps", [])
+    for index, r in enumerate(resp["step_results"]):
         mark = "✅" if r.get("ok") else "❌"
-        lines.append(f"{mark} [{r.get('tool')}] {r.get('message', '')}")
+        args = ""
+        if index < len(plan_steps):
+            step_args = plan_steps[index].get("args", {})
+            if step_args:
+                args = f" `{json.dumps(step_args, ensure_ascii=False)}`"
+        lines.append(f"{mark} [{r.get('tool')}]{args} {r.get('message', '')}")
     if resp.get("final_message"):
         lines.append(f"**{L.AGENT_FINAL}**：{resp['final_message']}")
     return "\n".join(lines)
@@ -133,6 +144,30 @@ with st.sidebar:
             st.caption(L.ROBOT_RS_CONNECTED if tcp_ok else L.ROBOT_RS_HINT)
         else:
             st.caption(L.HINT_SIM_REQUIRED)
+
+    # V6.2: 系统状态（LLM / RAG / 机器人连接）
+    if backend is not None:
+        st.divider()
+        st.markdown(f"**{L.SYS_STATUS_TITLE}**")
+        sys_status = (
+            backend.system_status() if hasattr(backend, "system_status") else {}
+        )
+        llm_text = (
+            f"✅ {L.SYS_LLM_OK}" if sys_status.get("llm") == "OK" else f"⚙️ {L.SYS_LLM_MOCK}"
+        )
+        rag_text = (
+            f"✅ {L.SYS_RAG_OK}"
+            if sys_status.get("rag") == "OK"
+            else f"⚠️ {L.SYS_RAG_DEGRADED}"
+        )
+        robot_text = (
+            f"✅ {L.SYS_ROBOT_OK}"
+            if sys_status.get("robot") == "CONNECTED"
+            else f"❌ {L.SYS_ROBOT_OFF}"
+        )
+        st.markdown(f"- {L.SYS_LLM}：{llm_text}")
+        st.markdown(f"- {L.SYS_RAG}：{rag_text}")
+        st.markdown(f"- {L.SYS_ROBOT}：{robot_text}")
 
 # ---------- 主界面 ----------
 
@@ -278,6 +313,24 @@ with tab_robot:
     st.subheader(L.ROB_SUBHEADER)
     if st.button(L.BUTTON_REFRESH, key="odom_refresh"):
         st.rerun()
+
+    # V6.2: 当前任务 / 执行时间 / 成功状态（跨后端通用）
+    task_stats = st.columns(3)
+    task_stats[0].metric(
+        L.ROB_LAST_TASK, (backend.last_task or "-")[:18]
+    )
+    task_stats[1].metric(
+        L.ROB_LAST_EXEC,
+        f"{backend.last_exec_s:.3f} s"
+        if getattr(backend, "last_exec_s", None) is not None
+        else "-",
+    )
+    success_text = (
+        "✅ 成功"
+        if backend.last_success is True
+        else ("❌ 失败" if backend.last_success is False else "-")
+    )
+    task_stats[2].metric(L.ROB_LAST_SUCCESS, success_text)
 
     odom = backend.get_odom()
     if not odom:

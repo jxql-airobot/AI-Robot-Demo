@@ -46,6 +46,7 @@ class Agent:
         planner=None,
         ros2_client=None,
         robotstudio_client=None,
+        rag_enabled=True,
     ):
         """
         backend: "ros2"（主模式，驱动现有 robot_controller）| "local"（SimRobot）
@@ -62,6 +63,7 @@ class Agent:
         self.embedder = None
         self.vector_store = None
         self.retriever = None
+        self.rag_enabled = rag_enabled
         self._init_rag()
 
         if backend == "ros2":
@@ -107,6 +109,8 @@ class Agent:
 
     def _init_rag(self):
         """初始化 RAG（模型可用时）；失败自动降级为关键词检索"""
+        if not self.rag_enabled:
+            return  # 实验用：禁用 RAG，仅关键词检索
         try:
             import importlib.util
 
@@ -136,7 +140,8 @@ class Agent:
         resolved = self.context.resolve_reference(task)
         self.context.update_task(resolved)
         memory_text = self._retrieve_memories(resolved)
-        plan = normalize_plan(self.planner.plan(resolved, self.context, memory_text))
+        raw_plan = self.planner.plan(resolved, self.context, memory_text)
+        plan = normalize_plan(raw_plan)
         t_plan = time.monotonic()
         step_results = self.executor.execute(plan)
         t_exec = time.monotonic()
@@ -149,12 +154,46 @@ class Agent:
             "plan_seconds": round(t_plan - t0, 4),
             "exec_seconds": round(t_exec - t_plan, 4),
         }
+        # V6.2: 统一实验日志（自动记录，日志失败不影响主流程）
+        self._log_task(task, raw_plan, plan, step_results)
         return {
             "plan": plan,
             "step_results": step_results,
             "final_message": final_message,
             "current_state": current_state,
         }
+
+    def _log_task(self, task, raw_plan, plan, step_results):
+        """V6.2: 写入统一实验日志（JSON Lines -> experiments/results/runtime_logs.json）"""
+        try:
+            from experiments.tasklog.task_logger import TaskLogger
+
+            steps = plan.get("steps", [])
+            tool_calls = [
+                {
+                    "tool": s.get("tool"),
+                    "args": s.get("args", {}),
+                    "purpose": s.get("purpose", ""),
+                }
+                for s in steps
+            ]
+            errors = [r.get("message") for r in step_results if not r.get("ok")]
+            timings = self.last_timings
+            TaskLogger().log(
+                user_input=task,
+                planner_output=raw_plan,
+                generated_plan=plan,
+                tool_calls=tool_calls,
+                backend=self.backend,
+                execution_steps=step_results,
+                success=bool(steps) and all(r.get("ok") for r in step_results),
+                error_message="; ".join(errors) if errors else "",
+                response_time=timings.get("total_seconds"),
+                planning_time=timings.get("plan_seconds"),
+                execution_time=timings.get("exec_seconds"),
+            )
+        except Exception:
+            pass
 
     def retrieve_memories(self, query, top_k=10):
         """供 GUI 记忆页使用：返回带来源的混合检索结果"""

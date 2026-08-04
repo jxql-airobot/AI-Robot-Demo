@@ -1,0 +1,15 @@
+﻿experiment,planner,task_id,category,task,success_rate,avg_response_s,avg_plan_s,avg_exec_s,failures
+E1_planning,mock,simple_move,简单任务执行,把红色零件移动到检测区,1.0,0.0,0.0,0.0,
+E1_planning,mock,multi_step_scan,多步骤任务规划,扫描工作台并报告红色零件的位置,1.0,0.0,0.0,0.0,
+E1_planning,mock,semantic_query,语义记忆查询,那个红色东西在哪里,1.0,0.0,0.0,0.0,
+E1_planning,mock,status_feedback,机器人状态反馈,机器人现在在哪里,0.0,0.0,0.0,0.0,工具不匹配
+E1_planning,mock,memory_save,记忆保存,记住：B区域在检测区右侧,1.0,0.008,0.008,0.0,
+E1_planning,mock,reference_resolution,指代消解,把那个零件放到成品区,0.0,0.0,0.0,0.0,计划为空: 无法执行
+E1_planning,robotstudio,rs_home,基础运动,回到Home位置,1.0,0.0075,0.0,0.0075,
+E1_planning,robotstudio,rs_joint_move,基础运动,移动机器人到指定点,1.0,0.0075,0.0,0.0075,
+E1_planning,robotstudio,rs_linear_move,基础运动,执行直线移动到目标点,1.0,0.0,0.0,0.0,
+E1_planning,robotstudio,rs_status,基础运动,读取机器人当前状态,1.0,0.0,0.0,0.0,
+E1_planning,robotstudio,rs_plan_move,Agent规划任务,让机器人移动到工作区域,1.0,0.0,0.0,0.0,
+E1_planning,robotstudio,rs_vision,视觉任务,找到红色零件位置,1.0,0.0075,0.0,0.0075,
+E1_planning,robotstudio,rs_memory_recall,记忆任务,之前看到的红色零件在哪里,1.0,0.0155,0.0,0.0155,
+E1_planning,robotstudio,rs_memory_move,记忆任务,把之前看到的红色零件移动到右侧区域,1.0,0.016,0.0,0.016,

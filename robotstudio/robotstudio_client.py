@@ -57,7 +57,8 @@ class RobotStudioClient:
 
     def send_action(self, action):
         """发送一条动作命令，返回解析后的回复 dict"""
-        return self._send_with_retry(action, retry=1)
+        # V6.2: Socket 断开自动恢复——断线重连最多 3 次
+        return self._send_with_retry(action, retry=3)
 
     def _send_with_retry(self, action, retry):
         """发送命令；通信失败时断线重连重试一次"""

@@ -1,0 +1,5 @@
+﻿experiment,mode,task_id,category,task,success_rate,recall_rate,failures
+E2_rag,no_rag,semantic_query,语义记忆查询,那个红色东西在哪里,1.0,0.0,
+E2_rag,no_rag,memory_save,记忆保存,记住：B区域在检测区右侧,1.0,,
+E2_rag,rag,semantic_query,语义记忆查询,那个红色东西在哪里,1.0,0.0,
+E2_rag,rag,memory_save,记忆保存,记住：B区域在检测区右侧,1.0,,

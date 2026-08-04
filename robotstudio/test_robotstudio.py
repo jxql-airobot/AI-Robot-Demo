@@ -87,6 +87,11 @@ def test_backend():
     )
     assert out["ok"], out
     assert out["joints"] == [0.0] * 6
+    # V6.2 统一错误格式：{success, error, stage}
+    out = backend.execute({"action": "bogus"})
+    assert out["success"] is False
+    assert out["stage"] in ("socket", "rapid", "motion")
+    assert isinstance(out["error"], str)
     state = backend.get_state()
     assert state["connected"] and state["joints"] == [0.0] * 6
     backend.close()

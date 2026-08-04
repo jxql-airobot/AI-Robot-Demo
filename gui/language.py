@@ -41,6 +41,18 @@ ROBOT_RS_LAST_RESULT = "最后返回结果"
 ROBOT_RS_TCP = "TCP 连接状态"
 STATUS_BACKEND = "当前后端：{backend}"
 
+# ---------- V6.2: 系统状态 ----------
+SYS_STATUS_TITLE = "系统状态"
+SYS_LLM = "LLM 规划器"
+SYS_RAG = "RAG 语义检索"
+SYS_ROBOT = "机器人连接"
+SYS_LLM_OK = "DeepSeek"
+SYS_LLM_MOCK = "离线 Mock"
+SYS_RAG_OK = "可用"
+SYS_RAG_DEGRADED = "降级(关键词)"
+SYS_ROBOT_OK = "已连接"
+SYS_ROBOT_OFF = "未连接"
+
 # ---------- 标签页 ----------
 TAB_CHAT = "💬 任务对话"
 TAB_WORKSPACE = "🗂 工作台状态"
@@ -69,6 +81,7 @@ AGENT_PLAN_GOAL = "目标"
 AGENT_PLAN_STEPS = "执行步骤"
 AGENT_PLAN_CURRENT_STATE = "当前状态"
 AGENT_PLAN_TOOL = "工具"
+AGENT_PLAN_ARGS = "参数"
 AGENT_RESULT_TITLE = "执行结果"
 AGENT_FINAL = "总结"
 
@@ -111,3 +124,8 @@ ROB_METRIC_Y = "Y 坐标"
 ROB_METRIC_YAW = "朝向 Yaw"
 ROB_METRIC_LINEAR = "线速度"
 ROB_METRIC_ANGULAR = "角速度"
+
+# ---------- V6.2: 机器人状态页增强 ----------
+ROB_LAST_TASK = "当前任务"
+ROB_LAST_EXEC = "执行时间"
+ROB_LAST_SUCCESS = "成功状态"

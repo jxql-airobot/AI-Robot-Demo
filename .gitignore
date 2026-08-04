@@ -20,3 +20,7 @@ __pycache__/
 # 虚拟环境
 .venv/
 venv/
+
+# V6.2 运行时日志（自动追加，可重新生成）
+experiments/results/runtime_logs.json
+experiments/results/idle_probe_result.txt
