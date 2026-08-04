@@ -149,7 +149,7 @@ AI-Robot-Demo
 ├── robotstudio/      # ABB RobotStudio 模块（TCP 客户端 / RAPID / 测试）
 ├── ros2_ws/          # ROS2 + Gazebo 仿真（WSL）
 ├── gui/              # Streamlit 图形界面
-├── experiments/      # 实验评测（任务集 / 基准 / 日志 / 结果 / 图表）
+├── experiments/      # 实验评测（任务集 / 基准脚本 / 日志 / 结果 / 图表）
 │   ├── tasklog/      #   统一实验日志系统
 │   ├── results/      #   实验数据（CSV / JSON / 报告）
 │   ├── logs/         #   实验过程日志
@@ -157,7 +157,6 @@ AI-Robot-Demo
 ├── docs/
 │   ├── thesis/       # 论文规划 / 格式分析 / 实验设计 / 系统设计 / 图片
 │   └── ...           # 版本文档与学习记录
-├── experiments/...   # 评测与基准脚本
 ├── 学习记录.md       # 开发过程完整记录
 └── README.md
 ```
