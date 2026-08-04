@@ -11,9 +11,9 @@ AI / Agent / Robot / ROS2 / Gazebo / Streamlit / DeepSeek / JSON / API / Memory 
 
 # ---------- 页面与标题 ----------
 TITLE = "AI Robot 智能体"
-TITLE_WITH_VERSION = "AI Robot 智能体 V5.1"
+TITLE_WITH_VERSION = "AI Robot 智能体 V5.2"
 SIDEBAR_TITLE = "🤖 AI Robot 智能体"
-SIDEBAR_CAPTION = "V5.1 · Streamlit 客户端"
+SIDEBAR_CAPTION = "V5.2 · Streamlit 客户端（Agent 模式）"
 MAIN_CAPTION = "Streamlit 独立客户端 · 不修改 V1-V4 任何代码与节点"
 
 # ---------- 侧边栏: 模式与连接 ----------
@@ -37,7 +37,7 @@ TAB_ROBOT = "🤖 机器人状态"
 
 # ---------- 任务对话区 ----------
 CHAT_SUBHEADER = "任务对话"
-CHAT_CAPTION = "输入自然语言任务，AI 大脑规划后由机器人执行。"
+CHAT_CAPTION = "输入自然语言任务，Agent 会生成可解释计划并调用工具执行。"
 CHAT_EXAMPLES_TITLE = "示例指令"
 CHAT_EXAMPLE_TASKS = [
     "扫描工作台",
@@ -48,6 +48,16 @@ CHAT_EXAMPLE_TASKS = [
 CHAT_INPUT_PLACEHOLDER = "下达任务，例如：把红色零件移动到检测区"
 CHAT_SPINNER = "AI 大脑规划与机器人执行中..."
 CHAT_NO_RESPONSE = "（未收到状态反馈，请确认仿真系统已启动）"
+
+# ---------- V5.2 Agent 可解释 Plan ----------
+AGENT_SPINNER = "Agent 正在生成计划并调用工具执行..."
+AGENT_PLAN_TASK_ANALYSIS = "任务分析"
+AGENT_PLAN_GOAL = "目标"
+AGENT_PLAN_STEPS = "执行步骤"
+AGENT_PLAN_CURRENT_STATE = "当前状态"
+AGENT_PLAN_TOOL = "工具"
+AGENT_RESULT_TITLE = "执行结果"
+AGENT_FINAL = "总结"
 
 # ---------- 工作台状态区 ----------
 WS_SUBHEADER = "工作台状态"

@@ -36,10 +36,11 @@ def _default_db_path():
 class Agent:
     """AI Robot 智能体：任务理解 → 计划 → 工具调用 → 结果返回"""
 
-    def __init__(self, backend="ros2", db_path=None, planner=None):
+    def __init__(self, backend="ros2", db_path=None, planner=None, ros2_client=None):
         """
         backend: "ros2"（主模式，驱动现有 robot_controller）| "local"（SimRobot）
         planner: 传入规划器实例；默认自动选择 DeepSeek 或 Mock
+        ros2_client: 复用外部 ROS2 客户端（GUI 场景避免创建第二个节点）
         """
         from memory import MemoryStore  # 只读复用 V2 记忆系统
 
@@ -49,9 +50,11 @@ class Agent:
         self.ros2_client = None
 
         if backend == "ros2":
-            from gui.ros2_client import Ros2Client  # 复用 V5.1 GUI 客户端
+            if ros2_client is None:
+                from gui.ros2_client import Ros2Client  # 复用 V5.1 GUI 客户端
 
-            self.ros2_client = Ros2Client()
+                ros2_client = Ros2Client()
+            self.ros2_client = ros2_client
             robot_backend = Ros2RobotBackend(self.ros2_client)
             vision = VisionTool(memory=self.memory, ros2_client=self.ros2_client)
             environment = EnvironmentTool(

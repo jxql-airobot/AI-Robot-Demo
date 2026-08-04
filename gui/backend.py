@@ -26,6 +26,10 @@ class AgentBackend:
 
     name = "base"
 
+    def handle_task(self, task):
+        """V5.2: 用 Agent 处理任务，返回 {plan, step_results, final_message, current_state}"""
+        raise NotImplementedError
+
     def send_task(self, text):
         """发送自然语言任务"""
         raise NotImplementedError
@@ -60,14 +64,26 @@ class Ros2Backend(AgentBackend):
 
     name = "ROS2"
 
-    def __init__(self):
+    def __init__(self, planner=None):
         # 延迟导入：rclpy 只在 source 过 ROS2 的环境可用；
         # memory.py 复用仓库根目录的 V2 记忆系统（不修改原文件）
         from ros2_client import Ros2Client
         from memory import MemoryStore
+        from agent import Agent
 
         self.client = Ros2Client()
         self.memory = MemoryStore(ROS2_DB_PATH)
+        # V5.2: GUI 对话走 Agent（可解释 Plan + 四工具），复用同一个 ROS2 客户端
+        self.agent = Agent(
+            backend="ros2",
+            ros2_client=self.client,
+            db_path=ROS2_DB_PATH,
+            planner=planner,
+        )
+
+    def handle_task(self, task):
+        """Agent 处理任务：生成可解释 Plan 并调用工具执行"""
+        return self.agent.handle(task)
 
     def send_task(self, text):
         self.client.send_task(text)
@@ -93,6 +109,7 @@ class Ros2Backend(AgentBackend):
         return self.memory.search(query, limit=50)
 
     def close(self):
+        self.agent.close()
         self.client.close()
 
 

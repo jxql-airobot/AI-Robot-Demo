@@ -29,7 +29,6 @@ for p in (GUI_DIR, REPO_ROOT):
 import streamlit as st  # noqa: E402
 
 from backend import Ros2Backend  # noqa: E402
-from config import STATUS_QUIET_SECONDS, STATUS_WAIT_TIMEOUT_SECONDS  # noqa: E402
 import language as L  # noqa: E402
 
 st.set_page_config(
@@ -52,37 +51,31 @@ def extract_workspace(text):
         return None
 
 
-def execute_task(backend, task):
-    """发送任务并收集本轮新增的状态反馈（去重；静默 1.5s 结束，最多 20s）"""
-    baseline = backend.get_status()
-    baseline_ts = baseline[1] if baseline else None
-    backend.send_task(task)
+def format_agent_plan(resp):
+    """把 AgentResponse 的可解释 Plan 格式化成聊天文本"""
+    plan = resp["plan"]
+    lines = [
+        f"**{L.AGENT_PLAN_TASK_ANALYSIS}**：{plan.get('task_analysis', '')}",
+        f"**{L.AGENT_PLAN_GOAL}**：{plan.get('goal', '')}",
+        f"**{L.AGENT_PLAN_STEPS}**：",
+    ]
+    for index, step in enumerate(plan.get("steps", []), 1):
+        purpose = step.get("purpose", "")
+        tool = step.get("tool", "")
+        lines.append(f"{index}. {purpose}（{L.AGENT_PLAN_TOOL}：{tool}）")
+    lines.append(f"**{L.AGENT_PLAN_CURRENT_STATE}**：{plan.get('current_state', '')}")
+    return "\n".join(lines)
 
-    collected = []
-    seen = set()
-    last_seen_ts = None
-    last = time.monotonic()
-    deadline = time.monotonic() + STATUS_WAIT_TIMEOUT_SECONDS
 
-    with st.spinner(L.CHAT_SPINNER):
-        while time.monotonic() < deadline:
-            status = backend.get_status()
-            if (
-                status
-                and status[1] != last_seen_ts
-                and (baseline_ts is None or status[1] > baseline_ts)
-            ):
-                text = status[0]
-                if text not in seen:
-                    collected.append(text)
-                    seen.add(text)
-                last_seen_ts = status[1]
-                last = time.monotonic()
-            if time.monotonic() - last > STATUS_QUIET_SECONDS:
-                break
-            time.sleep(0.1)
-
-    return collected if collected else [L.CHAT_NO_RESPONSE]
+def format_agent_results(resp):
+    """把工具执行结果格式化成聊天文本"""
+    lines = [f"**{L.AGENT_RESULT_TITLE}**"]
+    for r in resp["step_results"]:
+        mark = "✅" if r.get("ok") else "❌"
+        lines.append(f"{mark} [{r.get('tool')}] {r.get('message', '')}")
+    if resp.get("final_message"):
+        lines.append(f"**{L.AGENT_FINAL}**：{resp['final_message']}")
+    return "\n".join(lines)
 
 
 # ---------- 侧边栏：模式与连接 ----------
@@ -157,10 +150,17 @@ with tab_chat:
         st.session_state["history"].append(("user", task))
         with st.chat_message("user"):
             st.markdown(task)
-        for reply in execute_task(backend, task):
-            st.session_state["history"].append(("assistant", reply))
+        with st.spinner(L.AGENT_SPINNER):
+            resp = backend.handle_task(task)
+        plan_text = format_agent_plan(resp)
+        st.session_state["history"].append(("assistant", plan_text))
+        with st.chat_message("assistant"):
+            st.markdown(plan_text)
+        if resp["step_results"]:
+            result_text = format_agent_results(resp)
+            st.session_state["history"].append(("assistant", result_text))
             with st.chat_message("assistant"):
-                st.markdown(reply)
+                st.markdown(result_text)
 
 
 # 2) 工作台状态区
