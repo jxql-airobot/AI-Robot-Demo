@@ -1,29 +1,14 @@
-%%% Version:1.20
-%%% Modified: 2026-08-04
-%%% Created: 2026-08-04
-% ============================================================
-% ABB RobotStudio SocketServer for AI Agent control (V6.1)
-% ============================================================
-% Purpose:
-%   Runs inside an ABB IRC5 Virtual Controller (RobotWare 6.08).
-%   Listens on TCP port 30000 and executes robot motions based on
-%   text commands sent by the Python client.
-%
-% Import:
-%   RAPID -> T_ROB1 -> right-click -> Load Module -> socket_server.mod
-% Run:
-%   PP to main -> Start
-%
-% Protocol (matches robotstudio/command_schema.py):
-%   Client -> HOME | MOVEJ j1,...,j6 | MOVEL x,y,z,rx,ry,rz | GETPOS | STATUS
-%   Server <- OK j1,...,j6 | ERROR <message>
-%
-% Socket instructions used (RobotWare 6 standard):
-%   SocketCreate, SocketBind, SocketListen, SocketAccept,
-%   SocketReceive, SocketSend, SocketClose
-%
-% NOTE: uses tool0 and v1000; adjust for your station if needed.
-% ============================================================
+! ABB RobotStudio SocketServer for AI Agent control (V6.1)
+! Compatible with RobotWare 6.08 / IRC5 Virtual Controller.
+!
+! Protocol (matches robotstudio/command_schema.py):
+!   Client -> HOME | MOVEJ j1,...,j6 | MOVEL x,y,z,rx,ry,rz | GETPOS | STATUS
+!   Server <- OK j1,...,j6 | ERROR <message>
+!
+! Notes:
+!   - RAPID comments use exclamation mark, not percent sign
+!   - No file header comment block (avoids RobotStudio import issues)
+!   - Uses tool0 and v1000; adjust for your station if needed.
 
 MODULE socket_server
 
@@ -33,16 +18,20 @@ MODULE socket_server
     VAR num joint_angles{6};
 
     PROC main()
-        VAR string reply;
-
         SocketCreate server_socket;
         SocketBind server_socket, "0.0.0.0", 30000;
         SocketListen server_socket;
         TPWrite "AI Agent SocketServer listening on port 30000";
 
-    main_loop:
-        SocketAccept server_socket, client_socket;
-        TPWrite "Client connected";
+        WHILE TRUE DO
+            SocketAccept server_socket, client_socket;
+            TPWrite "Client connected";
+            HandleClient;
+        ENDWHILE
+    ENDPROC
+
+    PROC HandleClient()
+        VAR string reply;
 
         WHILE TRUE DO
             received_string := "";
@@ -52,24 +41,24 @@ MODULE socket_server
         ENDWHILE
 
     ERROR
-        ! Client disconnected or socket error: close and wait for next client
+        ! Client disconnected or socket error: close and return to accept loop
         SocketClose client_socket;
-        GOTO main_loop;
     ENDPROC
 
     FUNC string HandleCommand(string cmd)
         VAR string command;
         VAR num pos;
+        VAR num i;
 
-        ! Remove trailing CR/LF characters sent by the client
-    trim_loop:
-        IF StrLen(cmd) > 0 THEN
-            IF StrPart(cmd, StrLen(cmd), 1) = "\0A" OR
-               StrPart(cmd, StrLen(cmd), 1) = "\0D" THEN
-                cmd := StrPart(cmd, 1, StrLen(cmd)-1);
-                GOTO trim_loop;
+        ! Remove trailing CR/LF characters sent by the client (up to 4)
+        FOR i FROM 1 TO 4 DO
+            IF StrLen(cmd) > 0 THEN
+                IF StrPart(cmd, StrLen(cmd), 1) = "\0A" OR
+                   StrPart(cmd, StrLen(cmd), 1) = "\0D" THEN
+                    cmd := StrPart(cmd, 1, StrLen(cmd)-1);
+                ENDIF
             ENDIF
-        ENDIF
+        ENDFOR
 
         pos := StrFind(cmd, " ");
         IF pos > 0 THEN
