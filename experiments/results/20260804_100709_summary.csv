@@ -1,0 +1,7 @@
+id,category,rounds,success_rate,avg_total_s,avg_plan_s,avg_exec_s,rag_recall_rate
+simple_move,简单任务执行,3,1.0,2.1674,2.167,0.0003,0.0
+multi_step_scan,多步骤任务规划,3,1.0,2.4548,2.4546,0.0003,0.0
+semantic_query,语义记忆查询,3,1.0,1.9392,1.9389,0.0003,1.0
+status_feedback,机器人状态反馈,3,1.0,2.1608,2.1607,0.0,0.0
+memory_save,记忆保存,3,1.0,1.3801,1.3609,0.0193,0.0
+reference_resolution,指代消解,3,1.0,2.1208,2.1208,0.0,0.0

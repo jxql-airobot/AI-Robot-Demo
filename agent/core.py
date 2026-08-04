@@ -9,6 +9,7 @@ core.py — Agent 主类 (V5.2)
 
 import os
 import logging
+import time
 
 from agent.context import AgentContext
 from agent.executor import PlanExecutor
@@ -115,14 +116,23 @@ class Agent:
 
     def handle(self, task):
         """处理一条自然语言任务，返回 AgentResponse"""
+        t0 = time.monotonic()
         resolved = self.context.resolve_reference(task)
         self.context.update_task(resolved)
         memory_text = self._retrieve_memories(resolved)
         plan = normalize_plan(self.planner.plan(resolved, self.context, memory_text))
+        t_plan = time.monotonic()
         step_results = self.executor.execute(plan)
+        t_exec = time.monotonic()
         final_message = self._summarize(plan, step_results)
         current_state = self._extract_state(step_results)
         self.context.update_result(plan, final_message, current_state)
+        # V5.4: 评测用计时数据
+        self.last_timings = {
+            "total_seconds": round(t_exec - t0, 4),
+            "plan_seconds": round(t_plan - t0, 4),
+            "exec_seconds": round(t_exec - t_plan, 4),
+        }
         return {
             "plan": plan,
             "step_results": step_results,

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "simple_move",
+    "category": "简单任务执行",
+    "task": "把红色零件移动到检测区",
+    "expected_tool": "robot_tool",
+    "expected_action": "move",
+    "expected_object": "红色零件"
+  },
+  {
+    "id": "multi_step_scan",
+    "category": "多步骤任务规划",
+    "task": "扫描工作台并报告红色零件的位置",
+    "min_steps": 2,
+    "expected_tools_any": ["vision_tool", "environment_tool", "robot_tool"]
+  },
+  {
+    "id": "semantic_query",
+    "category": "语义记忆查询",
+    "task": "那个红色东西在哪里",
+    "memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "expected_recall": "红色零件"
+  },
+  {
+    "id": "status_feedback",
+    "category": "机器人状态反馈",
+    "task": "机器人现在在哪里",
+    "expected_tools_any": ["environment_tool", "robot_tool"]
+  },
+  {
+    "id": "memory_save",
+    "category": "记忆保存",
+    "task": "记住：B区域在检测区右侧",
+    "expected_tool": "memory_tool"
+  },
+  {
+    "id": "reference_resolution",
+    "category": "指代消解",
+    "task": "把那个零件放到成品区",
+    "setup_task": "把红色零件移动到检测区",
+    "expected_in_goal": "红色零件",
+    "expected_tool": "robot_tool"
+  }
+]

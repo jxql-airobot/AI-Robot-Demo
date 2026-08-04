@@ -1,0 +1,70 @@
+{
+  "generated_at": "20260804_100359",
+  "mode": "local",
+  "planner": "auto",
+  "rounds": 3,
+  "overall_success_rate": 0.8889,
+  "overall_avg_total_s": 1.8746,
+  "tasks": [
+    {
+      "id": "simple_move",
+      "category": "简单任务执行",
+      "rounds": 3,
+      "success_rate": 0.6667,
+      "avg_total_s": 2.0346,
+      "avg_plan_s": 2.0344,
+      "avg_exec_s": 0.0003,
+      "rag_recall_rate": 0.0
+    },
+    {
+      "id": "multi_step_scan",
+      "category": "多步骤任务规划",
+      "rounds": 3,
+      "success_rate": 1.0,
+      "avg_total_s": 1.8094,
+      "avg_plan_s": 1.8091,
+      "avg_exec_s": 0.0003,
+      "rag_recall_rate": 0.0
+    },
+    {
+      "id": "semantic_query",
+      "category": "语义记忆查询",
+      "rounds": 3,
+      "success_rate": 1.0,
+      "avg_total_s": 2.1412,
+      "avg_plan_s": 2.1409,
+      "avg_exec_s": 0.0004,
+      "rag_recall_rate": 1.0
+    },
+    {
+      "id": "status_feedback",
+      "category": "机器人状态反馈",
+      "rounds": 3,
+      "success_rate": 1.0,
+      "avg_total_s": 2.0212,
+      "avg_plan_s": 2.0212,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": 0.0
+    },
+    {
+      "id": "memory_save",
+      "category": "记忆保存",
+      "rounds": 3,
+      "success_rate": 1.0,
+      "avg_total_s": 1.6045,
+      "avg_plan_s": 1.5838,
+      "avg_exec_s": 0.0207,
+      "rag_recall_rate": 0.0
+    },
+    {
+      "id": "reference_resolution",
+      "category": "指代消解",
+      "rounds": 3,
+      "success_rate": 0.6667,
+      "avg_total_s": 1.6367,
+      "avg_plan_s": 1.6366,
+      "avg_exec_s": 0.0,
+      "rag_recall_rate": 0.0
+    }
+  ]
+}

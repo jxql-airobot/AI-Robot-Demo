@@ -1,0 +1,19 @@
+id,category,round,success,total_s,plan_s,exec_s,goal,steps,steps_detail,recall,recall_sources
+simple_move,简单任务执行,1,True,1.9766,1.9763,0.0003,将红色零件从右侧区域移动到检测区,3,memory_tool(ok) | vision_tool(ok) | robot_tool(ok),,
+simple_move,简单任务执行,2,True,2.5194,2.5189,0.0005,将红色零件从右侧区域移动到检测区,7,memory_tool(ok) | environment_tool(ok) | robot_tool(ok) | robot_tool(ok) | robot_tool(ok) | robot_tool(ok) | vision_tool(ok),,
+simple_move,简单任务执行,3,True,2.0061,2.0058,0.0002,将红色零件从右侧区域移动到检测区,6,memory_tool(ok) | environment_tool(ok) | robot_tool(ok) | robot_tool(ok) | robot_tool(ok) | robot_tool(ok),,
+multi_step_scan,多步骤任务规划,1,True,3.4379,3.4376,0.0003,获取工作台扫描结果，确认红色零件位置并报告,3,vision_tool(ok) | memory_tool(ok) | environment_tool(ok),,
+multi_step_scan,多步骤任务规划,2,True,1.7538,1.7536,0.0003,获取工作台扫描结果，确认红色零件位置并报告,3,vision_tool(ok) | environment_tool(ok) | memory_tool(ok),,
+multi_step_scan,多步骤任务规划,3,True,2.1727,2.1725,0.0002,获取工作台扫描结果并报告红色零件的位置,3,vision_tool(ok) | robot_tool(ok) | environment_tool(ok),,
+semantic_query,语义记忆查询,1,True,1.9428,1.9426,0.0003,确定红色物体的位置并告知用户,3,memory_tool(ok) | vision_tool(ok) | robot_tool(ok),True,语义检索
+semantic_query,语义记忆查询,2,True,1.7346,1.7343,0.0003,确定红色物体的当前位置并告知用户,3,memory_tool(ok) | vision_tool(ok) | environment_tool(ok),True,语义检索
+semantic_query,语义记忆查询,3,True,2.1401,2.1398,0.0003,确定红色物体的当前位置并告知用户,3,memory_tool(ok) | vision_tool(ok) | robot_tool(ok),True,语义检索
+status_feedback,机器人状态反馈,1,True,1.8721,1.8721,0.0,获取机器人当前的位置坐标或状态描述。,1,environment_tool(ok),,
+status_feedback,机器人状态反馈,2,True,2.6008,2.6007,0.0,获取机器人当前的位置坐标或状态描述。,1,environment_tool(ok),,
+status_feedback,机器人状态反馈,3,True,2.0094,2.0094,0.0,获取并告知机器人当前的位置。,1,environment_tool(ok),,
+memory_save,记忆保存,1,True,1.192,1.1703,0.0217,将B区域位置信息保存到记忆中,1,memory_tool(ok),,
+memory_save,记忆保存,2,True,1.3714,1.3528,0.0187,将B区域位置信息保存到记忆中,1,memory_tool(ok),,
+memory_save,记忆保存,3,True,1.5768,1.5595,0.0174,将B区域位置信息保存到记忆中。,1,memory_tool(ok),,
+reference_resolution,指代消解,1,True,1.772,1.772,0.0,将红色零件放置到成品区,2,robot_tool(ok) | robot_tool(ok),,
+reference_resolution,指代消解,2,True,2.1406,2.1406,0.0,将红色零件放置到成品区,3,robot_tool(ok) | robot_tool(ok) | environment_tool(ok),,
+reference_resolution,指代消解,3,True,2.4499,2.4498,0.0001,将红色零件放置到成品区,3,robot_tool(ok) | robot_tool(ok) | robot_tool(ok),,
