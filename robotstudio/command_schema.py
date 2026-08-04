@@ -10,6 +10,7 @@ command_schema.py — RobotStudio 统一动作格式 (V6.0)
     {"action": "joint_move", "joints": [0,0,0,0,0,0]}          -> MOVEJ j1,...,j6
     {"action": "linear_move", "target": [x,y,z,rx,ry,rz]}       -> MOVEL x,y,z,rx,ry,rz
     {"action": "get_position"}                                  -> GETPOS
+    {"action": "get_pose"}                                      -> GETPOSE（x,y,z,rx,ry,rz）
     {"action": "status"}                                        -> STATUS（同 GETPOS，返回当前关节）
 
 回复格式（服务端 -> 客户端）：
@@ -36,6 +37,8 @@ def build_command(action):
         return f"MOVEL {text}\n"
     if act in ("get_position", "get_state"):
         return "GETPOS\n"
+    if act == "get_pose":
+        return "GETPOSE\n"
     if act == "status":
         return "STATUS\n"
     raise ValueError(f"未知 RobotStudio 动作: {act}")

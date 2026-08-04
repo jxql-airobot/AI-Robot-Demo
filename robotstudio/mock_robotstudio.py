@@ -111,6 +111,8 @@ class MockRobotStudioServer:
                 return f"OK {','.join(str(j) for j in self.joints)}"
             except ValueError:
                 return "ERROR MOVEL 参数无法解析"
+        if cmd == "GETPOSE":
+            return f"OK {','.join(str(v) for v in self.pose)}"
         if cmd == "GETPOS" or cmd == "STATUS":
             return f"OK {','.join(str(j) for j in self.joints)}"
         return f"ERROR 未知命令: {cmd}"

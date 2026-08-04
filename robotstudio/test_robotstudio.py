@@ -63,6 +63,8 @@ def test_client_mock_loop():
     )
     assert reply["ok"], reply
     assert reply["joints"] == [10.0, 20.0, 30.0, 45.0, 60.0, 0.0]
+    reply = client.get_pose()
+    assert reply["ok"] and reply["joints"] == [0.3, 0.0, 0.3, 0.0, 0.0, 0.0], reply
     reply = client.send_action(
         {"action": "linear_move", "target": [0.3, 0.0]}
     )

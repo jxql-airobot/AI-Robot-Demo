@@ -97,6 +97,8 @@ MODULE socket_server
             ELSE
                 RETURN "ERROR MOVEL cannot parse parameters";
             ENDIF
+        ELSEIF command = "GETPOSE" THEN
+            RETURN "OK " + PoseString();
         ELSEIF command = "GETPOS" OR command = "STATUS" THEN
             RETURN "OK " + JointString();
         ELSE
@@ -203,6 +205,19 @@ MODULE socket_server
              NumToStr(current_jt.robax.rax_4,2) + "," +
              NumToStr(current_jt.robax.rax_5,2) + "," +
              NumToStr(current_jt.robax.rax_6,2);
+        RETURN s;
+    ENDFUNC
+
+    FUNC string PoseString()
+        VAR robtarget p;
+        VAR string s;
+        p := CRobT();
+        s := NumToStr(p.trans.x,3) + "," +
+             NumToStr(p.trans.y,3) + "," +
+             NumToStr(p.trans.z,3) + "," +
+             NumToStr(EulerZYX(p.rot \X),2) + "," +
+             NumToStr(EulerZYX(p.rot \Y),2) + "," +
+             NumToStr(EulerZYX(p.rot \Z),2);
         RETURN s;
     ENDFUNC
 

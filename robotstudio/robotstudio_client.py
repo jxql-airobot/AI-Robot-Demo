@@ -86,6 +86,10 @@ class RobotStudioClient:
         """查询当前关节位置"""
         return self.send_action({"action": "get_position"})
 
+    def get_pose(self):
+        """查询当前 TCP 位姿 (x,y,z,rx,ry,rz)，来自 RAPID CRobT()"""
+        return self.send_action({"action": "get_pose"})
+
     def _drop_socket(self):
         """断开底层 socket（保留 Mock 服务端，便于重连）"""
         if self._sock is not None:

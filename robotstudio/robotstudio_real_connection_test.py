@@ -66,8 +66,12 @@ def test_real(host, port, timeout):
         )
         assert reply["ok"], f"joint_move(非奇异姿态) 失败: {reply}"
         print(f"[OK] joint_move 到非奇异姿态: {reply['message']}")
+        pose = client.get_pose()
+        assert pose.get("ok") and pose.get("joints"), f"get_pose 失败: {pose}"
+        px, py, pz = pose["joints"][:3]
+        print(f"[OK] GETPOSE 当前 TCP: x={px} y={py} z={pz} (m)")
         reply = client.send_action(
-            {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}
+            {"action": "linear_move", "target": [px + 0.1, py, pz, 0.0, 0.0, 0.0]}
         )
         assert reply["ok"], f"linear_move 失败: {reply}"
         print(f"[OK] linear_move 执行成功: {reply['message']}")

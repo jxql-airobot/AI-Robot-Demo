@@ -55,7 +55,25 @@ def main():
         ("GETPOS", {"action": "get_position"}),
         ("HOME", {"action": "move_home"}),
         ("MOVEJ", {"action": "joint_move", "joints": [10, 20, 30, 45, 60, 0]}),
-        ("MOVEL", {"action": "linear_move", "target": [0.3, 0.0, 0.3, 0.0, 0.0, 0.0]}),
+    ]
+    # GETPOSE 读当前真实 TCP 位姿，MOVEL 目标 = 当前位置沿 X +0.1m
+    # （姿态保持当前值，避免腕部奇异区）
+    pose = client.get_pose()
+    if pose.get("ok") and pose.get("joints") and len(pose["joints"]) == 6:
+        px, py, pz = pose["joints"][:3]
+        print(f"[GETPOSE] 当前 TCP 位姿: x={px} y={py} z={pz} (rx,ry,rz 略)")
+        steps.append(
+            (
+                "MOVEL",
+                {
+                    "action": "linear_move",
+                    "target": [px + 0.1, py, pz, 0.0, 0.0, 0.0],
+                },
+            )
+        )
+    else:
+        print(f"[GETPOSE] 读取位姿失败: {pose.get('message')}")
+    steps += [
         ("STATUS", {"action": "status"}),
         ("GETPOS", {"action": "get_position"}),
         ("HOME", {"action": "move_home"}),
