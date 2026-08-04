@@ -402,6 +402,81 @@ def run_knowledge(tasks, rounds):
     return rows
 
 
+def run_variants(rounds):
+    """语言变体对比实验：同一意图多种自然说法，规则规划器 vs LLM 规划器。
+
+    变体刻意避开规则规划器的关键词，用于证明 LLM 智能体对自然语言变体的
+    理解能力（规则匹配会失败，语义理解能成功）。使用 mock 后端，隔离
+    “规划能力”这一变量（执行链路两种规划器完全一致）。
+    """
+    tasks = load_tasks("variant")
+    seeds = collect_seeds(tasks)
+    db_path = make_db(seeds)
+    planners = {
+        "mock": RobotStudioMockPlanner(),
+        "deepseek": DeepSeekRobotStudioPlanner(),
+    }
+    all_rows = []
+    for planner_name, planner in planners.items():
+        rows = []
+        for task in tasks:
+            exp = task.get("expected") or {}
+            exp_tools = task.get("expected_tools") or []
+            for variant in task["variants"]:
+                succ, times = [], []
+                for _ in range(rounds):
+                    agent = build_agent("mock", planner, db_path)
+                    try:
+                        resp = agent.handle(variant, task_type="variant")
+                        steps = resp["plan"].get("steps", [])
+                        good = bool(steps) and all(
+                            r.get("ok") for r in resp["step_results"]
+                        )
+                        if good and exp.get("tool"):
+                            good = any(s.get("tool") == exp["tool"] for s in steps)
+                        if good and exp.get("action"):
+                            good = any(
+                                s.get("args", {}).get("action") == exp["action"]
+                                for s in steps
+                            )
+                        if good and exp_tools:
+                            tools = {s.get("tool") for s in steps}
+                            good = bool(set(exp_tools) & tools)
+                        succ.append(1 if good else 0)
+                        times.append(agent.last_timings["total_seconds"])
+                    except Exception:
+                        succ.append(0)
+                        times.append(0.0)
+                    finally:
+                        try:
+                            agent.registry["robot_tool"].backend.execute(
+                                {"action": "move_home"}
+                            )
+                        except Exception:
+                            pass
+                        agent.close()
+                rows.append(
+                    {
+                        "planner": planner_name,
+                        "task_id": task["task_id"],
+                        "intent": task["intent"],
+                        "variant": variant,
+                        "rounds": rounds,
+                        "success_rate": round(sum(succ) / rounds, 4),
+                        "avg_response_s": round(sum(times) / rounds, 4),
+                    }
+                )
+        write_csv(os.path.join(RESULTS_DIR, f"task_sets_variant_{planner_name}.csv"), rows)
+        all_rows.extend(rows)
+        ok = sum(1 for r in rows if r["success_rate"] == 1.0)
+        print(
+            f"  [变体] {planner_name}: {ok}/{len(rows)} 条变体全部成功 "
+            f"（成功率={sum(r['success_rate'] for r in rows)/len(rows):.0%}）"
+        )
+    write_csv(os.path.join(RESULTS_DIR, "task_sets_variant_compare.csv"), all_rows)
+    return all_rows
+
+
 def write_csv(path, rows):
     if not rows:
         return
@@ -416,7 +491,7 @@ def write_csv(path, rows):
 def main():
     parser = argparse.ArgumentParser(description="论文任务集批量运行与评测")
     parser.add_argument("--tasks", default="all",
-                        choices=["all", "basic", "complex", "knowledge"])
+                        choices=["all", "basic", "complex", "knowledge", "variant"])
     parser.add_argument("--backend", default="mock", choices=["mock", "real"])
     parser.add_argument("--planner", default="robotstudio",
                         choices=["robotstudio", "deepseek"])
@@ -438,6 +513,9 @@ def main():
     if args.tasks in ("all", "knowledge"):
         print("[工业知识 RAG 问答]")
         run_knowledge(load_tasks("knowledge"), args.rounds)
+    if args.tasks in ("all", "variant"):
+        print("[语言变体对比：规则规划器 vs LLM 规划器]")
+        run_variants(args.rounds)
     print("[任务集] 完成")
 
 

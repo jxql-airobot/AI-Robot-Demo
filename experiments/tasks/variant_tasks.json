@@ -1,0 +1,69 @@
+[
+  {
+    "task_id": "var_home",
+    "intent": "回到初始位置",
+    "expected": {"tool": "robot_tool", "action": "move_home"},
+    "variants": [
+      "让机械臂收回到安全位置",
+      "机器人回一下原点位置",
+      "把机械臂归位",
+      "末端回到基准位置"
+    ]
+  },
+  {
+    "task_id": "var_joint_move",
+    "intent": "移动到指定位置",
+    "expected": {"tool": "robot_tool", "action": "joint_move"},
+    "variants": [
+      "把机械臂转到工位A那边",
+      "让末端执行器移到A点",
+      "机器人手臂摆到第一个工位",
+      "把机械臂挪到指定工位"
+    ]
+  },
+  {
+    "task_id": "var_linear_move",
+    "intent": "直线运动到目标点",
+    "expected": {"tool": "robot_tool", "action": "linear_move"},
+    "variants": [
+      "沿着笔直的路径走过去",
+      "不拐弯地走到那个点",
+      "末端笔直推进到目标点",
+      "沿着直线轨迹移动"
+    ]
+  },
+  {
+    "task_id": "var_status",
+    "intent": "读取机器人状态",
+    "expected": {"tool": "robot_tool", "action": "get_position"},
+    "variants": [
+      "关节角度现在是多少",
+      "机器人各轴转了多少",
+      "机械臂现在是什么姿态",
+      "报一下末端的坐标"
+    ]
+  },
+  {
+    "task_id": "var_memory_move",
+    "intent": "记忆驱动搬运",
+    "expected": {"tool": "robot_tool", "action": "linear_move"},
+    "seed_memory": {"topic": "红色零件", "content": "位于右侧区域", "category": "物体信息"},
+    "variants": [
+      "上次看到的红色零件，帮我搬到右边去",
+      "还记得那个红色零件吗，把它放到右侧",
+      "之前看到的那颗红零件，移到右边区域",
+      "把右区那个红色东西带过去"
+    ]
+  },
+  {
+    "task_id": "var_scan",
+    "intent": "扫描工作台并报告",
+    "expected_tools": ["vision_tool", "environment_tool"],
+    "variants": [
+      "看看台面上有哪些东西",
+      "工作台上现在放了什么",
+      "清点一下桌上的零件",
+      "桌上都有什么"
+    ]
+  }
+]
