@@ -35,6 +35,27 @@
 
 AI 决策层与机器人执行层完全分离：Agent 不直接接触 RobotStudio 代码。
 
+### 3.1 为什么采用 Backend 插件架构，而不是独立 RobotStudio Agent
+
+本项目采用 **RobotTool 多后端（Backend 插件）架构**，而非为 RobotStudio
+单独实现一个 Agent 子类，原因如下：
+
+1. **单一决策层**：Agent 只有一套规划 / 记忆 / RAG / 上下文逻辑。
+   执行差异全部收敛到 backend 层（`execute(action)` / `get_state()`），
+   不复制 Agent 核心逻辑
+2. **可插拔扩展**：新增执行后端只需实现同接口——
+   GazeboBackend / LocalBackend / RobotStudioBackend 结构一致，
+   未来真实 ABB 机器人、PLC 同样适用
+3. **避免维护两套大脑**：独立 RobotStudio Agent 会复制记忆/RAG/Plan 流程，
+   任何 Agent 能力升级都要改两处，容易漂移
+4. **与项目定位一致**：RobotStudio 只是"工业机器人智能体执行平台"的执行
+   后端之一，不是独立系统
+
+> 说明：开发过程中曾存在一套并行实现（`robotstudio/robotstudio_agent.py`
+> 独立 Agent 子类 + 独立 `gui/robotstudio_backend.py`），其引用了不存在的
+> `RobotStudioStatusBackend`，且与 Backend 插件设计重复，已在
+> `refactor(robotstudio)` 提交中移除；测试支撑文件迁移至 `tests/`。
+
 ## 4. 通信方式（RAPID Socket TCP）
 
 ### 原理

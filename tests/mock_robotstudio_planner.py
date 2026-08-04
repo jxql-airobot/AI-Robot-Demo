@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-mock_planner.py — RobotStudio 离线规划器 (V6.0)
-===============================================
-关键词匹配生成 RobotStudio 动作 Plan，接口与 agent/planner.py 一致。
-用于无 DeepSeek / 离线测试。
+mock_robotstudio_planner.py — RobotStudio 离线规划器（测试用途）
+==============================================================
+由 robotstudio/mock_planner.py 迁移而来（V6.0 并行实现清理），
+适配保留的 Backend 插件架构：动作通过 robot_tool 执行
+（RobotStudioBackend 是 robot_tool 的第三种后端）。
+
+仅用于离线测试，不作为正式运行模块。
 """
 
 from agent.plan_schema import error_plan
@@ -16,13 +19,13 @@ class RobotStudioMockPlanner:
         text = task
         current_state = context.current_state or "未知"
 
-        if "回家" in text or "home" in text.lower() or "Home" in text:
+        if "回家" in text or "home" in text.lower():
             return {
                 "task_analysis": "用户要求机器人回到 Home 位置",
                 "goal": "机器人回到 Home 位置",
                 "steps": [
                     {
-                        "tool": "robotstudio_tool",
+                        "tool": "robot_tool",
                         "args": {"action": "move_home"},
                         "purpose": "回到 Home 位置",
                     }
@@ -35,10 +38,10 @@ class RobotStudioMockPlanner:
                 "goal": "直线移动到指定点",
                 "steps": [
                     {
-                        "tool": "robotstudio_tool",
+                        "tool": "robot_tool",
                         "args": {
                             "action": "linear_move",
-                            "pose": [0.5, 0.0, 0.5, 0.0, 0.0, 0.0],
+                            "target": [0.5, 0.0, 0.5, 0.0, 0.0, 0.0],
                         },
                         "purpose": "直线移动到指定点",
                     }
@@ -51,7 +54,7 @@ class RobotStudioMockPlanner:
                 "goal": "移动到指定点",
                 "steps": [
                     {
-                        "tool": "robotstudio_tool",
+                        "tool": "robot_tool",
                         "args": {
                             "action": "joint_move",
                             "joints": [10.0, 20.0, 30.0, 0.0, 0.0, 0.0],
