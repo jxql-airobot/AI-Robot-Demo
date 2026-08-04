@@ -103,7 +103,7 @@ class MockRobotStudioServer:
         if cmd.startswith("MOVEL"):
             self.last_action = "linear_move"
             return f"OK {','.join(str(j) for j in self.joints)}"
-        if cmd == "GETPOS":
+        if cmd == "GETPOS" or cmd == "STATUS":
             return f"OK {','.join(str(j) for j in self.joints)}"
         return f"ERROR 未知命令: {cmd}"
 

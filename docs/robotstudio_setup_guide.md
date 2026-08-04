@@ -4,10 +4,10 @@
 
 ## 第一步：安装 RobotWare
 
-1. 从 ABB 官方渠道下载 **RobotWare 6.08.01**（见 `docs/robotware_install.md`）
-2. 双击安装包，一路下一步，默认安装
-3. 安装完成后，重新运行 `python robotstudio/check_environment.py`
-   确认 RobotWare 出现在组件列表
+1. 本机已确认安装 **RobotWare 6.08.1040**（路径
+   `C:\Users\zlx06\AppData\Local\ABB Industrial IT\Robotics IT\RobotWare\RobotWare_6.08.1040`）
+2. 若换机器未安装，从 ABB 官方渠道下载（见 `docs/robotware_install.md`）
+3. 运行 `python robotstudio/check_environment.py` 确认
 
 ## 第二步：打开 RobotStudio
 
@@ -25,7 +25,7 @@
 ## 第四步：添加 ABB 机器人
 
 1. 基本标签页 -> **ABB 模型库**（或导入模型库）
-2. 选择机器人型号，如 **IRB 120**（小型六轴，最适合入门）
+2. 选择 **IRB 120-3/0.6**（控制器类型 IRC5）
 3. 拖到工作台，机器人出现在布局中
 
 ## 第五步：导入 RAPID 程序

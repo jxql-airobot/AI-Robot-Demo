@@ -52,6 +52,8 @@ def test_client_mock_loop():
 
     reply = client.get_position()
     assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
+    reply = client.send_action({"action": "status"})
+    assert reply["ok"] and reply["joints"] == [10.0, 20.0, 30.0, 0.0, 0.0, 0.0]
     client.close()
     assert not client.connected
     print("[OK] 客户端 + Mock 服务端闭环测试通过")

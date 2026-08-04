@@ -8,22 +8,28 @@
 | 软件 | 版本 | 状态 |
 | --- | --- | --- |
 | RobotStudio | 6.08.01 | ✅ 已安装（D 盘） |
-| RobotWare | 6.08（与 RobotStudio 匹配） | ❌ 需安装 |
+| RobotWare | 6.08.1040（与 RobotStudio 匹配） | ✅ 已安装（AppData\Local\ABB Industrial IT\Robotics IT\RobotWare\RobotWare_6.08.1040） |
 | Python | 3.10（WSL）/ 3.12（Windows） | ✅ |
 
-注意：必须安装与 RobotStudio 匹配的 RobotWare 6.08，
-否则"新建工作站 -> 从布局创建系统"时下拉列表不显示虚拟控制器。
+> 环境检查结论（2026-08-04）：
+> - RobotWare 6.08.1040 已确认安装（存放于 AppData\Local，注册表卸载列表看不到）
+> - 本机 **未安装 PC SDK 开发组件**（无自动化 API），因此无法通过代码自动
+>   创建工作站，需按第二节手动创建一次（创建后长期复用）
 
 ## 2. 创建虚拟控制器步骤
 
 1. 打开 RobotStudio 6.08
 2. 新建工作站：文件 -> 新建 -> 空工作站
-3. 添加机器人：基本 -> ABB 模型库 -> 选择 IRB 系列（如 IRB 120）
+3. 添加机器人：基本 -> ABB 模型库 -> 选择 **IRB 120-3/0.6**（控制器类型 IRC5）
 4. 创建系统：基本 -> 机器人系统 -> 从布局创建系统
-   - 选择 RobotWare 6.08
-   - 系统名如 `AI_Robot_System`
+   - 选择 **RobotWare 6.08**（已安装）
+   - 系统名如 `AI_Robot_System_IRB120`
    - 点击"完成"，等待虚拟控制器启动
-5. 确认虚拟控制器状态：控制器标签页出现 `AI_Robot_System` 且为运行中
+5. 确认虚拟控制器状态：控制器标签页出现 `AI_Robot_System_IRB120` 且为运行中
+6. 保存工作站：文件 -> 另存为 -> `AI_Robot_IRB120.rspag`
+
+> 说明：本机 `Documents\RobotStudio\Solutions\yy\` 已有 IRB 120 系统，但按项目
+> 要求新建独立工作站，避免与既有实验混淆。
 
 ## 3. 导入 RAPID 程序
 
@@ -38,6 +44,15 @@
 2. 启动程序：点击 **PP 到 main**（程序指针到 main），再点击 **启动**
 3. 教学器/日志出现：`AI Agent SocketServer 等待连接 (端口 30000)`
 4. 确认虚拟控制器网络：默认 127.0.0.1 可访问
+
+### Socket 协议
+
+```
+客户端 -> HOME\n | MOVEJ j1,...,j6\n | MOVEL x,y,z,rx,ry,rz\n | GETPOS\n | STATUS\n
+服务端 <- OK j1,...,j6\n | ERROR <message>\n
+```
+
+> STATUS 与 GETPOS 等价：返回当前关节角度，用于状态轮询。
 
 ## 5. Python 连接测试
 

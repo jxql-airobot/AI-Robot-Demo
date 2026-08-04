@@ -15,7 +15,7 @@
 %
 % 通信流程：
 %   Python 连接 127.0.0.1:30000
-%     -> 发送 HOME / MOVEJ j1,...,j6 / MOVEL x,y,z,rx,ry,rz / GETPOS
+%     -> 发送 HOME / MOVEJ j1,...,j6 / MOVEL x,y,z,rx,ry,rz / GETPOS / STATUS
 %     -> RAPID 执行并回复 OK j1,...,j6 或 ERROR <message>
 %
 % 协议与 robotstudio/command_schema.py 完全一致。
@@ -78,7 +78,7 @@ MODULE SocketServer
             ENDIF
         ELSEIF StrMatch(command, "MOVEL") THEN
             RETURN "OK " + JointString();
-        ELSEIF StrMatch(command, "GETPOS") THEN
+        ELSEIF StrMatch(command, "GETPOS") OR StrMatch(command, "STATUS") THEN
             RETURN "OK " + JointString();
         ELSE
             RETURN "ERROR 未知命令: " + cmd;
