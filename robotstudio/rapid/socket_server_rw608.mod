@@ -1,7 +1,7 @@
 MODULE socket_server_rw608
 
-    PROC main()
-        TPWrite "RW608 Socket Server Test";
+    PROC socket_main()
+        TPWrite "AI Robot Socket Server Test";
     ENDPROC
 
 ENDMODULE
