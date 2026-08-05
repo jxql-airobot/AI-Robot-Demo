@@ -68,5 +68,75 @@
       }
     ],
     "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_206",
+    "task_type": "knowledge",
+    "input": "RAPID运动指令中的速度参数v1000代表什么？",
+    "expected_keywords": ["1000", "毫米", "秒", "速度"],
+    "seed_memory": [
+      {
+        "topic": "RAPID速度参数",
+        "content": "MOVEJ和MOVEL中的速度参数v1000表示末端线速度1000mm/s（毫米每秒）；本项目运动指令统一使用v1000，并配合fine停止点保证到位精度。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_207",
+    "task_type": "knowledge",
+    "input": "本项目TCP通信协议中坐标用什么单位？",
+    "expected_keywords": ["米", "毫米", "1000", "换算"],
+    "seed_memory": [
+      {
+        "topic": "TCP坐标单位",
+        "content": "协议约定TCP坐标x,y,z单位为米；RAPID内部robtarget.trans使用毫米，解析参数时乘以1000换算；姿态rx,ry,rz单位为度。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_208",
+    "task_type": "knowledge",
+    "input": "执行直线搬运前需要做什么准备？",
+    "expected_keywords": ["MOVEJ", "非奇异", "位姿", "可达"],
+    "seed_memory": [
+      {
+        "topic": "直线运动前置条件",
+        "content": "直线运动前应先使用MOVEJ移动到非奇异姿态（如[10,20,30,45,60,0]），并确认目标位姿在IRB120可达范围内（如[0.3,0,0.3]），避免腕部奇异和位置超限。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_209",
+    "task_type": "knowledge",
+    "input": "机器人报50442轴配置错误应该怎么处理？",
+    "expected_keywords": ["50442", "ConfL", "轴配置", "MoveL"],
+    "seed_memory": [
+      {
+        "topic": "50442轴配置错误",
+        "content": "50442表示轴配置错误，RAPID中可通过ConfL\\Off让MoveL自动选择最近的可行轴配置，并配合SingArea\\Wrist处理腕部奇异。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_210",
+    "task_type": "knowledge",
+    "input": "SocketAccept超时为什么会触发40195限制错误？",
+    "expected_keywords": ["40195", "超时", "WAIT_MAX", "重试"],
+    "seed_memory": [
+      {
+        "topic": "40195限制错误",
+        "content": "默认SocketAccept超时60秒，超时重试次数耗尽会触发40195限制错误导致程序停止；本项目使用\\Time:=WAIT_MAX无限等待，避免空闲时停机。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
   }
 ]
