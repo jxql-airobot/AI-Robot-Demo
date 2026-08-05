@@ -22,6 +22,34 @@
     "expected_recall": "红色零件"
   },
   {
+    "id": "semantic_query_blue",
+    "category": "语义记忆查询",
+    "task": "蓝色的那个放哪了",
+    "memory": {"topic": "蓝色零件", "content": "位于中间区域", "category": "物体信息"},
+    "expected_recall": "蓝色零件"
+  },
+  {
+    "id": "semantic_query_green",
+    "category": "语义记忆查询",
+    "task": "绿色的物件在哪",
+    "memory": {"topic": "绿色零件", "content": "位于左侧区域", "category": "物体信息"},
+    "expected_recall": "绿色零件"
+  },
+  {
+    "id": "semantic_query_parts",
+    "category": "语义记忆查询",
+    "task": "工作台上都有什么",
+    "memory": {"topic": "工作台零件", "content": "红色零件在右侧，蓝色零件在中间，绿色零件在左侧", "category": "环境信息"},
+    "expected_recall": "零件"
+  },
+  {
+    "id": "semantic_query_zone",
+    "category": "语义记忆查询",
+    "task": "零件检测的地方在哪",
+    "memory": {"topic": "检测区位置", "content": "检测区位于工作台中部", "category": "环境信息"},
+    "expected_recall": "检测区"
+  },
+  {
     "id": "status_feedback",
     "category": "机器人状态反馈",
     "task": "机器人现在在哪里",

@@ -1,5 +1,13 @@
 ﻿experiment,mode,task_id,category,task,success_rate,recall_rate,failures
 E2_rag,no_rag,semantic_query,语义记忆查询,那个红色东西在哪里,1.0,0.0,
+E2_rag,no_rag,semantic_query_blue,语义记忆查询,蓝色的那个放哪了,0.0,0.0,计划为空: 无法执行
+E2_rag,no_rag,semantic_query_green,语义记忆查询,绿色的物件在哪,1.0,0.0,
+E2_rag,no_rag,semantic_query_parts,语义记忆查询,工作台上都有什么,0.0,0.0,计划为空: 无法执行
+E2_rag,no_rag,semantic_query_zone,语义记忆查询,零件检测的地方在哪,1.0,0.0,
 E2_rag,no_rag,memory_save,记忆保存,记住：B区域在检测区右侧,1.0,,
 E2_rag,rag,semantic_query,语义记忆查询,那个红色东西在哪里,1.0,1.0,
+E2_rag,rag,semantic_query_blue,语义记忆查询,蓝色的那个放哪了,0.0,1.0,计划为空: 无法执行
+E2_rag,rag,semantic_query_green,语义记忆查询,绿色的物件在哪,1.0,1.0,
+E2_rag,rag,semantic_query_parts,语义记忆查询,工作台上都有什么,0.0,1.0,计划为空: 无法执行
+E2_rag,rag,semantic_query_zone,语义记忆查询,零件检测的地方在哪,1.0,1.0,
 E2_rag,rag,memory_save,记忆保存,记住：B区域在检测区右侧,1.0,,
