@@ -55,3 +55,5 @@ Zotero 插件配合（本机 Zotero 9.0.6 + Better BibTeX 9.0.49 / Jasminum
 - 2026-08-05：建立目录结构与阅读模板（与 F:\AI-Robot-Demo-Literature
   文献库对应）。
 - 2026-08-05：完成 10 篇阅读笔记、2 篇占位；记录 Zotero 插件用法。
+- 2026-08-05：生成 missing_papers.md（缺失文献清单）、literature_index.md
+  （22 篇参考文献分级映射）、reading_plan.md（8 篇核心论文阅读计划）。
