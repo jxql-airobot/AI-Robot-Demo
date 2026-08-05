@@ -14,6 +14,11 @@
 > 打开 Zotero 双击条目即可打开 PDF，不再依赖外部路径。F:\AI-Robot-Demo-
 > Literature\papers\ 里的原件保留作归档，与 Zotero 内副本相互独立。
 
+> 2026-08-05 三次更新：已存储附件仍报"无法找到附件"，根因是 Zotero 9
+> 要求存储目录 key 必须为 8 位大写字母+数字（/^[A-Z0-9]{8}$/），手写
+> 的小写混合 key 会导致解析失败。已用 scripts/fix_keys_uppercase.py 把
+> 全部条目与分类 key 重生成成大写格式并重建 storage 目录，验证无缺失。
+
 ---
 
 ## 一、让 Zotero 使用 F:\ZoteroData 数据目录
