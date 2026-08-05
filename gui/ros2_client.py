@@ -61,6 +61,7 @@ class Ros2Client:
         self._vision = None   # (dict, 时间戳)
         self._odom = None     # (dict, 时间戳)
         self._stop = False
+        self._memory = None   # 记忆库兜底（延迟初始化）
 
         # 后台线程持续 spin，保证回调一直执行；主线程只读快照
         self._spin_thread = threading.Thread(
@@ -126,9 +127,32 @@ class Ros2Client:
             return self._status
 
     def get_vision(self):
-        """返回最近一次视觉识别结果 dict，无则 None"""
+        """返回最近一次视觉识别结果 dict。
+
+        ROS2 快照为空时回退到记忆库的"物体信息"（vision_node 每次识别都会
+        写入记忆；话题仅在结果变化时发布，GUI 启动晚于识别时会漏接）。
+        """
         with self._lock:
-            return self._vision
+            if self._vision is not None:
+                return self._vision
+        try:
+            if self._memory is None:
+                from memory import MemoryStore
+                from config import resolve_gui_db_path
+
+                repo_root = os.path.dirname(GUI_DIR)
+                if repo_root not in sys.path:
+                    sys.path.insert(0, repo_root)
+                self._memory = MemoryStore(resolve_gui_db_path())
+            rows = [
+                r for r in self._memory.all_memories() if r[2] == "物体信息"
+            ]
+            if rows:
+                parts = {r[0]: r[1] for r in rows[-10:]}
+                return ({"parts": parts}, time.time())
+        except Exception:
+            pass
+        return None
 
     def get_odom(self):
         """返回最近一次里程计快照 dict，无则 None"""
