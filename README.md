@@ -135,13 +135,15 @@ ABB IRB120 机器人执行
 
 ### 实验与论文
 
-- 论文规划：[docs/thesis/thesis_plan.md](docs/thesis/thesis_plan.md)
-- 学校模板格式分析：[docs/thesis/school_template_analysis.md](docs/thesis/school_template_analysis.md)
 - 实验设计：[docs/thesis/experiment_plan.md](docs/thesis/experiment_plan.md)
-- 系统设计：[docs/thesis/system_design.md](docs/thesis/system_design.md)
 - 开发记录：[docs/thesis/development_log.md](docs/thesis/development_log.md)
+- 系统设计：[docs/system_design.md](docs/system_design.md)
+- 系统架构：[docs/architecture.md](docs/architecture.md)
 - 统一实验日志：`experiments/results/runtime_logs.json`（Agent 自动记录）
 - 论文实验脚本：[experiments/thesis_experiments.py](experiments/thesis_experiments.py)
+
+> 说明：毕业论文全文、答辩材料与软件著作权登记材料属于私有成果，
+> 不收录于本公开仓库（存放于仓库外私有目录）。
 
 ## 项目结构
 
@@ -158,7 +160,8 @@ AI-Robot-Demo
 │   ├── logs/         #   实验过程日志
 │   └── figures/      #   实验图表
 ├── docs/
-│   ├── thesis/       # 论文规划 / 格式分析 / 实验设计 / 系统设计 / 图片
+│   ├── thesis/       # 公开部分：实验设计 / 开发记录（论文全文与答辩材料为私有）
+│   ├── system_design.md / architecture.md  # 系统设计与架构
 │   └── ...           # 版本文档与学习记录
 ├── 学习记录.md       # 开发过程完整记录
 └── README.md

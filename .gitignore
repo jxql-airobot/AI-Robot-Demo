@@ -44,3 +44,31 @@ docs/thesis/experiment_status.md
 docs/thesis/AI-Robot-Demo_论文草稿.docx
 docs/thesis/AI-Robot-Demo_论文草稿_新.docx
 docs/thesis/_cover_logo.jpeg
+
+# ===== 私有材料（不公开，存放于仓库外 F:\AI-Robot-Demo-private）=====
+# 论文私有文档（正文/答辩/评价等）
+docs/thesis/abstract*.md
+docs/thesis/appendix.md
+docs/thesis/chapter*.md
+docs/thesis/keywords.md
+docs/thesis/references.md
+docs/thesis/toc.md
+docs/thesis/thesis_plan.md
+docs/thesis/system_design.md
+docs/thesis/school_template_analysis.md
+docs/thesis/experiment_validation_report.md
+docs/thesis/defense/
+docs/thesis/results/
+docs/thesis/images/
+docs/thesis/generate_*.py
+docs/thesis/*.docx
+docs/thesis/*.pdf
+
+# 软件著作权材料（软著登记专用，不公开）
+docs/software_copyright/
+
+# 个人评价/评审类文件
+*GPT*
+*评价*
+*评审*
+*评分*
