@@ -12,7 +12,10 @@ docs/literature/
 ├── templates/
 │   └── paper_note_template.md    论文阅读笔记模板
 ├── reading_notes/                中文阅读笔记（每篇论文一个 md）
-└── related_work/                 相关工作资料
+├── related_work/                 相关工作资料
+├── scripts/
+│   └── zotero_import.py          一次性导入脚本（12 篇条目+分类+标签+PDF 链接）
+└── USAGE.md                      使用说明
 ```
 
 论文 PDF 分类（F:\AI-Robot-Demo-Literature\papers\）：
