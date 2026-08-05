@@ -30,6 +30,9 @@ import streamlit as st  # noqa: E402
 
 from backend import Ros2Backend  # noqa: E402
 import language as L  # noqa: E402
+from panels.experiment_dashboard import render as render_experiment  # noqa: E402
+from panels.system_info import render as render_system_info  # noqa: E402
+from panels.task_replay import render as render_task_replay  # noqa: E402
 
 st.set_page_config(
     page_title=L.TITLE_WITH_VERSION, page_icon="🤖", layout="wide"
@@ -177,8 +180,26 @@ st.caption(L.MAIN_CAPTION)
 if backend is None:
     st.stop()
 
-tab_chat, tab_ws, tab_mem, tab_vis, tab_robot = st.tabs(
-    [L.TAB_CHAT, L.TAB_WORKSPACE, L.TAB_MEMORY, L.TAB_VISION, L.TAB_ROBOT]
+(
+    tab_chat,
+    tab_ws,
+    tab_mem,
+    tab_vis,
+    tab_robot,
+    tab_exp,
+    tab_replay,
+    tab_sys,
+) = st.tabs(
+    [
+        L.TAB_CHAT,
+        L.TAB_WORKSPACE,
+        L.TAB_MEMORY,
+        L.TAB_VISION,
+        L.TAB_ROBOT,
+        L.TAB_EXPERIMENT,
+        L.TAB_REPLAY,
+        L.TAB_SYSTEM,
+    ]
 )
 
 
@@ -352,3 +373,18 @@ with tab_robot:
             c3.metric(L.ROB_METRIC_YAW, f"{data['yaw']:.2f} rad")
             c4.metric(L.ROB_METRIC_LINEAR, f"{data['linear_x']:.2f} m/s")
             c5.metric(L.ROB_METRIC_ANGULAR, f"{data['angular_z']:.2f} rad/s")
+
+
+# 6) 实验分析（V6.3 论文展示层）
+with tab_exp:
+    render_experiment()
+
+
+# 7) 任务回放（V6.3 论文展示层）
+with tab_replay:
+    render_task_replay()
+
+
+# 8) 系统信息（V6.3 论文展示层）
+with tab_sys:
+    render_system_info()

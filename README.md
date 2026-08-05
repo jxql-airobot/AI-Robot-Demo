@@ -47,7 +47,7 @@ AI 不输出黑盒思考链，而是输出结构化计划（任务分析 / 目�
 
 ```mermaid
 flowchart TD
-    U[用户自然语言] --> G[Streamlit GUI<br/>5 页面 + 系统状态]
+    U[用户自然语言] --> G[Streamlit GUI<br/>8 页面 + 系统状态]
     G --> A[LLM Agent<br/>可解释 Plan + 工具调用]
     A --> R[RAG 语义记忆<br/>bge 嵌入 + 混合检索]
     R --> T[工具层<br/>memory / robot / vision / environment]
@@ -61,7 +61,8 @@ flowchart TD
 
 分层设计（强调软件工程思想）：
 
-- **交互层**：Streamlit GUI（任务对话 / 工作台 / 记忆 / 视觉 / 机器人状态）
+- **交互层**：Streamlit GUI（任务对话 / 工作台 / 记忆 / 视觉 / 机器人状态 +
+  论文展示层：实验分析 / 任务回放 / 系统信息）
 - **智能体层**：可解释规划、工具调用、会话上下文、指代消解
 - **语义记忆层**：bge-small-zh 向量嵌入 + SQLite 向量表 + 混合检索
 - **后端插件层**：统一 `RobotTool → Backend` 接口，Local / Gazebo / RobotStudio
@@ -88,7 +89,7 @@ flowchart TD
 
 ## 当前成果
 
-### 版本历程（V1 ~ V6.2）
+### 版本历程（V1 ~ V6.3）
 
 | 版本 | 内容 | 状态 |
 | --- | --- | --- |
@@ -103,6 +104,7 @@ flowchart TD
 | V6.0 | RobotStudio 后端（Mock + Backend 插件架构） | ✅ |
 | V6.1 | ABB RobotStudio 真实联调（TCP + RAPID + IRC5） | ✅ |
 | V6.2 | 真实 MoveL + CJointT 真值 + GETPOSE + 实验基准 + 论文稳定化 | ✅ |
+| V6.3 | 论文展示层（实验数据看板 / 任务回放 / 系统信息页） | ✅ |
 
 ### ABB RobotStudio 真实联调
 
@@ -149,6 +151,7 @@ AI-Robot-Demo
 ├── robotstudio/      # ABB RobotStudio 模块（TCP 客户端 / RAPID / 测试）
 ├── ros2_ws/          # ROS2 + Gazebo 仿真（WSL）
 ├── gui/              # Streamlit 图形界面
+│   └── panels/       #   论文展示层面板（实验分析 / 任务回放 / 系统信息）
 ├── experiments/      # 实验评测（任务集 / 基准脚本 / 日志 / 结果 / 图表）
 │   ├── tasklog/      #   统一实验日志系统
 │   ├── results/      #   实验数据（CSV / JSON / 报告）

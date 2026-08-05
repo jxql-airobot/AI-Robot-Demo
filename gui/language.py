@@ -59,6 +59,9 @@ TAB_WORKSPACE = "🗂 工作台状态"
 TAB_MEMORY = "🧠 记忆查看"
 TAB_VISION = "👁 视觉感知"
 TAB_ROBOT = "🤖 机器人状态"
+TAB_EXPERIMENT = "📊 实验分析"
+TAB_REPLAY = "🔄 任务回放"
+TAB_SYSTEM = "ℹ️ 系统信息"
 
 # ---------- 任务对话区 ----------
 CHAT_SUBHEADER = "任务对话"
