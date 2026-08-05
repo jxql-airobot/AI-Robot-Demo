@@ -23,6 +23,9 @@ docs/literature/
 4. `04_Robot_Software_Architecture/`：机器人软件架构；
 5. `05_Embodied_AI/`：具身智能与未来方向。
 
+完整使用说明（Zotero 切换数据目录、导入 PDF、三个插件用法）见
+[USAGE.md](USAGE.md)。
+
 ## 笔记格式
 
 每篇论文一个 Markdown 文件，命名规则：
