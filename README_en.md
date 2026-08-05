@@ -76,8 +76,18 @@ Git tags: `v4.0-gazebo` → `v5.1-gui` → `v5.2-agent` → `v5.3-rag` → `v5.4
 
 ### One-click
 
-Double-click the desktop **AI机器人Demo全家桶** shortcut — Windows Terminal
-opens 4 tabs (V1/V2 demo, ROS2/Gazebo, task CLI, Streamlit GUI).
+Run the official launcher in PowerShell — it opens 4 tabs (V1/V2 demo,
+ROS2/Gazebo, task CLI, Streamlit GUI) and auto-opens the browser:
+
+```powershell
+.\AI_Robot_Demo_Launcher.ps1
+```
+
+For background silent start (no windows):
+
+```powershell
+.\AI_Robot_Demo_Launcher.ps1 -Background
+```
 
 ### Manual
 

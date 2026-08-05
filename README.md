@@ -169,6 +169,21 @@ AI-Robot-Demo
 
 ## 快速开始
 
+推荐方式：使用官方启动器一键启动（打开 V1/V2 演示、ROS2 仿真、任务终端
+与 GUI 四个窗口，并自动打开浏览器）：
+
+```powershell
+.\AI_Robot_Demo_Launcher.ps1
+```
+
+需要后台静默启动（不弹窗口）时：
+
+```powershell
+.\AI_Robot_Demo_Launcher.ps1 -Background
+```
+
+手动启动：
+
 ```bash
 # 1. 安装依赖（Windows）
 pip install -r requirements.txt
@@ -176,7 +191,7 @@ pip install -r requirements.txt
 # 2. 配置 DeepSeek Key（.env）
 cp .env.example .env
 
-# 3. 本地模式运行
+# 3. 本地模式运行（V1/V2）
 python main.py
 
 # 4. GUI（RobotStudio / Gazebo 模式）
@@ -193,7 +208,8 @@ python experiments/thesis_experiments.py --experiment all --rounds 5
 
 ## 仓库说明
 
-- 本仓库为**科研项目档案**：完整保留开发过程、实验数据与论文素材；
-- 不上传：论文最终文件、API 密钥（`.env`）、模型文件与大体积数据；
+- 本仓库为**公开科研项目展示**：展示代码、架构与实验能力；
+- 不上传：毕业论文全文、答辩材料、软著登记材料、API 密钥（`.env`）、
+  模型文件与大体积数据（私有材料存放于仓库外 `AI-Robot-Demo-private/`）；
 - 版本标签：`v4.0-gazebo` `v5.1-gui` `v5.2-agent` `v5.3-rag` `v5.4-evaluation`
   `v6.0-robotstudio` `v6.1-abb-simulation` `v6.2-movel-cjoint` `v6.2-thesis-stable`
