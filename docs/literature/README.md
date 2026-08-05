@@ -14,7 +14,8 @@ docs/literature/
 ├── reading_notes/                中文阅读笔记（每篇论文一个 md）
 ├── related_work/                 相关工作资料
 ├── scripts/
-│   └── zotero_import.py          一次性导入脚本（12 篇条目+分类+标签+PDF 链接）
+│   ├── zotero_import.py          一次性导入脚本（12 篇条目+分类+标签）
+│   └── fix_attachments_to_stored.py  修复脚本（链接附件→已存储附件）
 └── USAGE.md                      使用说明
 ```
 

@@ -8,6 +8,12 @@
 > Zotero 就能看到，不需要再手动导入。以下步骤保留作参考，不要重复执行
 > 导入脚本（会生成重复条目）。
 
+> 2026-08-05 二次更新：直接写入的"链接附件"在 Zotero 9 里报"无法找到
+> 附件"，已用 scripts/fix_attachments_to_stored.py 把 10 个附件全部转成
+> Zotero "已存储附件"（PDF 复制到 F:\ZoteroData\storage\<key>\）。现在
+> 打开 Zotero 双击条目即可打开 PDF，不再依赖外部路径。F:\AI-Robot-Demo-
+> Literature\papers\ 里的原件保留作归档，与 Zotero 内副本相互独立。
+
 ---
 
 ## 一、让 Zotero 使用 F:\ZoteroData 数据目录
@@ -34,7 +40,7 @@ F:\ZoteroData 本身就是完整档案（含 zotero.sqlite）。
 
 ## 二、导入 10 篇论文 PDF
 
-（已自动完成，以下为手动方法参考）
+（已自动完成并转为已存储附件，以下为手动方法参考）
 
 PDF 位置：`F:\AI-Robot-Demo-Literature\papers\<分类>\`
 
