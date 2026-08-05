@@ -56,6 +56,9 @@ Zotero 插件配合（本机 Zotero 9.0.6 + Better BibTeX 9.0.49 / Jasminum
 管理引用键，Translate 负责读原文时的逐段翻译。插件只能在 Zotero 界面
 使用，命令行无法直接调用。
 
+论文关联知识库（论文 ↔ 项目模块 ↔ 论文章节 ↔ 答辩）见
+[knowledge_base/](knowledge_base/README.md)。
+
 ## 维护记录
 
 - 2026-08-05：建立目录结构与阅读模板（与 F:\AI-Robot-Demo-Literature
