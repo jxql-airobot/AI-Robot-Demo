@@ -119,6 +119,8 @@ def find_item_id(keyword):
 
 
 def add_note(parent_id, title, html):
+    # Zotero 9 笔记必须带 zotero-note 外壳才会被识别为富文本
+    html = '<div class="zotero-note znv1">' + html + '</div>'
     k = gen_key(used)
     used.add(k)
     cur.execute(
