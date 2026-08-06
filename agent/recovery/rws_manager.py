@@ -176,6 +176,10 @@ class RWSManager:
     LEVEL2_CODES = {"50050", "50027", "50501", "10020", "40195",
                     "41595", "10125"}
 
+    # E-log 故障根因码：排除 10020（执行错误状态）/10125（程序已停止）
+    # 这类伴随事件，保留实际触发故障的错误码
+    FAULT_CODES = {"50050", "50027", "50501", "40195", "41595"}
+
     def is_recoverable(self, error):
         """按错误码判断是否允许自动恢复（与 RecoveryManager 分级一致）。
         Level 3 安全相关异常（急停、安全保护）一律不可自动恢复。"""
@@ -188,6 +192,32 @@ class RWSManager:
         if code in self.LEVEL2_CODES:
             return True, f"停止级异常 {code}，可尝试 RWS 自动恢复"
         return True, "普通执行异常，直接重规划即可"
+
+    def get_controller_error(self, limit=50):
+        """从控制器事件日志（RWS E-log）读取最近一次真实故障错误码。
+
+        50050 等停止级错误会使 RAPID 任务立即停止，TCP 链路来不及返回
+        结构化错误回复；本方法通过 RWS 事件日志接口读取控制器记录的
+        真实故障码，作为 Observation 的补充错误通道。
+        返回: {"error_code": str|None, "timestamp": str|None,
+               "detail": str}
+        """
+        status, body = self._request(
+            "GET", f"/rw/elog/0?order=lifo&limit={int(limit)}")
+        if status != 200:
+            return {"error_code": None, "timestamp": None,
+                    "detail": f"E-log 不可用(HTTP {status})"}
+        entries = re.findall(
+            r'<span class="code">([^<]+)</span>'
+            r'\s*<span class="src-name">[^<]*</span>'
+            r'\s*<span class="tstamp">([^<]*)</span>',
+            body)
+        for code, ts in entries:
+            if code in self.FAULT_CODES:
+                return {"error_code": code, "timestamp": ts.strip(),
+                        "detail": f"E-log 最新故障码 {code} @ {ts.strip()}"}
+        return {"error_code": None, "timestamp": None,
+                "detail": "E-log 中未发现近期故障码"}
 
     # ---------- 恢复动作 ----------
 

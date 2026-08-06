@@ -28,6 +28,21 @@ class MockRWSHandler(BaseHTTPRequestHandler):
                 "</div></body></html>"
             )
             self._send(200, body.encode())
+        elif "/rw/elog/0" in self.path:
+            body = (
+                '<html><body><div class="state"><ul>'
+                '<li class="elog-message-li"><span class="code">10125</span>'
+                '<span class="src-name">MC0</span>'
+                '<span class="tstamp">2026-08-06 T 12:00:01</span></li>'
+                '<li class="elog-message-li"><span class="code">10020</span>'
+                '<span class="src-name">MC0</span>'
+                '<span class="tstamp">2026-08-06 T 12:00:00</span></li>'
+                '<li class="elog-message-li"><span class="code">50050</span>'
+                '<span class="src-name">MC0</span>'
+                '<span class="tstamp">2026-08-06 T 11:59:59</span></li>'
+                "</ul></div></body></html>"
+            )
+            self._send(200, body.encode())
         else:
             self._send(404, b"not found")
 
@@ -123,6 +138,18 @@ def test_state_parsing_running_and_error():
         exec_state, error_code = RWSManager._parse_execution(body)
         assert exec_state == "stopped"
         assert error_code == "50050"
+    finally:
+        server.shutdown()
+
+
+def test_get_controller_error_from_elog():
+    server, port = start_server(MockRWSHandler)
+    try:
+        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
+        result = mgr.get_controller_error()
+        # LIFO 顺序下应跳过 10125/10020，返回根因码 50050
+        assert result["error_code"] == "50050"
+        assert result["timestamp"] == "2026-08-06 T 11:59:59"
     finally:
         server.shutdown()
 
