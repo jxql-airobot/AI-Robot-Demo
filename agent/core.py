@@ -118,8 +118,16 @@ class Agent:
         self.observer = ObservationManager()
         self.reflector = ReflectionAnalyzer()
         # V6.6: 错误分级与自动恢复（仅闭环流程使用，不影响 handle）
+        # V6.7: robotstudio 后端注入 RWS 控制器级恢复器；RWS 未启用时
+        #       自动回退到原有人工重启 + 自动重连流程，接口不变。
+        recoverer = None
+        if backend == "robotstudio":
+            from agent.recovery.rws_manager import RWSManager
+
+            recoverer = RWSManager(timeout=1.5)
         self.recovery = RecoveryManager(
-            backend=self.registry["robot_tool"].backend
+            backend=self.registry["robot_tool"].backend,
+            recoverer=recoverer,
         )
 
     def _init_rag(self):

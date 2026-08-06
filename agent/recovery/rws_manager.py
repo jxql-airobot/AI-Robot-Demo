@@ -79,25 +79,56 @@ class RWSManager:
 
     # ---------- 状态查询 ----------
 
+    def check_connection(self):
+        """连接测试：探测 RWS 是否可达且已启用。
+
+        返回:
+            {"controller_available": bool, "detail": str}
+        """
+        status, body = self._request("GET", "/rw/rapid/execution")
+        if status is None:
+            return {"controller_available": False,
+                    "detail": f"RWS 不可达: {body}"}
+        if status == 404:
+            return {"controller_available": False,
+                    "detail": "RWS 未启用（/rw/ 返回 404），"
+                              "请先在 RobotStudio Firewall Manager 中"
+                              "启用 RobotWebServices"}
+        return {"controller_available": True,
+                "detail": f"RWS 可达（HTTP {status}）"}
+
     def probe(self):
-        """探测 RWS 是否启用。RWS 启用时 /rw/ 系列接口返回 200/401。"""
-        status, _ = self._request("GET", "/rw/rapid/execution")
-        return status is not None and status != 404
+        """兼容旧接口：探测 RWS 是否启用。"""
+        return self.check_connection()["controller_available"]
+
+    def get_controller_state(self):
+        """查询控制器 RAPID 执行状态。
+
+        返回:
+            {"state": "running"|"stopped"|"error"|"unknown",
+             "raw": 原始响应}
+        """
+        status, body = self._request("GET", "/rw/rapid/execution")
+        if status is None or status == 404:
+            return {"state": "unknown",
+                    "raw": f"RWS 不可用 (http={status}): {body[:120]}"}
+        text = body.lower()
+        if "error" in text and "execution error" in text:
+            state = "error"
+        elif "stopped" in text:
+            state = "stopped"
+        elif "running" in text:
+            state = "running"
+        else:
+            state = "unknown"
+        return {"state": state, "raw": body[:300]}
 
     def get_controller_status(self):
         """查询 RAPID 执行状态与控制器错误状态。"""
-        status, body = self._request("GET", "/rw/rapid/execution")
-        if status is None or status == 404:
-            return {
-                "available": False,
-                "reason": "rws_not_enabled",
-                "detail": body,
-            }
-        return {
-            "available": True,
-            "http_status": status,
-            "execution_state": body[:300],
-        }
+        state = self.get_controller_state()
+        return {"available": state["state"] != "unknown",
+                "execution_state": state["state"],
+                "detail": state["raw"]}
 
     # ---------- 恢复判定 ----------
 
@@ -148,7 +179,26 @@ class RWSManager:
         return False
 
     def recover(self, error, host="127.0.0.1", port=30000):
-        """执行完整的 RWS 自动恢复流程。"""
+        """兼容旧接口：执行完整的 RWS 自动恢复流程。"""
+        return self.recover_controller(error, host=host, port=port)
+
+    def recover_controller(self, error, host="127.0.0.1", port=30000,
+                           socket_timeout_seconds=60):
+        """错误恢复：停止状态 → reset → PP to main → start → 等 Socket 恢复。
+
+        返回:
+            {
+                "controller_state_before": str,
+                "recoverable": bool,
+                "status": "success"|"rws_not_enabled"|"failed"|"need_manual",
+                "recover_time": 秒,
+                "socket_reconnect_time": 秒,
+                "steps": [...],
+                "reason": str,
+            }
+        """
+        import time
+
         recoverable, reason = self.is_recoverable(error)
         if not recoverable:
             return {
@@ -157,14 +207,20 @@ class RWSManager:
                 "status": "need_manual",
                 "reason": reason,
             }
-        if not self.probe():
+        conn = self.check_connection()
+        if not conn["controller_available"]:
             return {
                 "recoverable": True,
                 "action": "rws",
                 "status": "rws_not_enabled",
-                "reason": "虚拟控制器未启用 RobotWebServices，"
-                          "保持人工重启 + 自动重连流程",
+                "controller_state_before": "unknown",
+                "recover_time": 0.0,
+                "socket_reconnect_time": 0.0,
+                "reason": conn["detail"] + "；保持人工重启 + 自动重连流程",
+                "steps": [],
             }
+        state_before = self.get_controller_state()["state"]
+        t0 = time.monotonic()
         steps = []
         for name, fn in (("reset", self.reset_error),
                          ("set_pp", self.set_pp_to_main),
@@ -177,15 +233,24 @@ class RWSManager:
                     "recoverable": True,
                     "action": "rws",
                     "status": "failed",
+                    "controller_state_before": state_before,
+                    "recover_time": time.monotonic() - t0,
+                    "socket_reconnect_time": 0.0,
                     "reason": f"RWS {name} 失败",
                     "steps": steps,
                 }
-        socket_ok = self.wait_for_socket(host, port)
+        t_recover = time.monotonic() - t0
+        t_sock0 = time.monotonic()
+        socket_ok = self.wait_for_socket(host, port, socket_timeout_seconds)
+        t_sock = time.monotonic() - t_sock0
         return {
             "recoverable": True,
             "action": "rws",
             "status": "success" if socket_ok else "socket_timeout",
-            "reason": "RWS 已清除错误并重启 RAPID"
+            "controller_state_before": state_before,
+            "recover_time": round(t_recover, 3),
+            "socket_reconnect_time": round(t_sock, 3),
+            "reason": "RWS 已清除错误并重启 RAPID，SocketServer 恢复监听"
                       if socket_ok else "RWS 动作完成但端口未恢复",
             "steps": steps,
             "socket_ok": socket_ok,

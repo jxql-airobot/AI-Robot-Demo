@@ -39,10 +39,19 @@ LEVEL3_HINTS = ("急停", "安全保护", "安全限位", "emergency", "safety_g
 
 
 class RecoveryManager:
-    """错误分级与恢复决策器"""
+    """错误分级与恢复决策器
 
-    def __init__(self, backend=None):
+    参数:
+        backend: 可选的机器人后端（用于执行恢复动作）；
+        recoverer: 可选的控制器级恢复器（RWSManager）。Level 2 停止级
+            异常时优先尝试 recoverer（如 RWS 自动恢复）；recoverer 不可用
+            或恢复失败时回退到 backend.recover_error 的原有人工重启 +
+            自动重连流程。
+    """
+
+    def __init__(self, backend=None, recoverer=None):
         self.backend = backend  # 可选的机器人后端（用于执行恢复动作）
+        self.recoverer = recoverer  # 可选的 RWS 控制器级恢复器
 
     def classify(self, error):
         """把错误信息映射为错误等级（1/2/3）"""
@@ -85,10 +94,26 @@ class RecoveryManager:
         }
 
     def recover(self, error):
-        """执行恢复决策：Level 2 尝试 backend 恢复，Level 1 转重规划，
-        Level 3 返回人工处理。"""
+        """执行恢复决策：Level 2 优先 recoverer（RWS），否则 backend 恢复，
+        Level 1 转重规划，Level 3 返回人工处理。"""
         plan = self.analyze(error)
         if plan["action"] == "restart_rapid":
+            if self.recoverer is not None:
+                try:
+                    rws_result = self.recoverer.recover_controller(error)
+                    if rws_result.get("status") == "success":
+                        plan["status"] = "success"
+                        plan["recovery_source"] = "rws"
+                        plan["recovery_detail"] = (
+                            rws_result.get("reason") or "RWS 自动恢复成功"
+                        )
+                        plan["rws_result"] = rws_result
+                        return plan
+                    # rws_not_enabled / failed / socket_timeout：记录后回退
+                    plan["rws_result"] = rws_result
+                except Exception as exc:  # noqa: BLE001
+                    plan["rws_result"] = {"status": "error",
+                                          "reason": f"RWS 调用异常: {exc}"}
             backend = self.backend
             if backend is not None and hasattr(backend, "recover_error"):
                 try:
@@ -106,4 +131,3 @@ class RecoveryManager:
         elif plan["action"] == "replan":
             plan["status"] = "replanned"
         return plan
-
