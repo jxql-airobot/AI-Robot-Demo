@@ -13,8 +13,10 @@ import time
 
 from agent.context import AgentContext
 from agent.executor import PlanExecutor
+from agent.observation import ObservationManager
 from agent.plan_schema import normalize_plan
 from agent.planner import build_plan_planner
+from agent.reflection import ReflectionAnalyzer
 from agent.tools.environment_tool import EnvironmentTool
 from agent.tools.memory_tool import MemoryTool
 from agent.tools.robot_tool import (
@@ -26,6 +28,9 @@ from agent.tools.robot_tool import (
 from agent.tools.vision_tool import VisionTool
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CLOSED_LOOP_LOG = os.path.join(
+    REPO_ROOT, "experiments", "logs", "agent_execution_logs.json"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +52,7 @@ class Agent:
         ros2_client=None,
         robotstudio_client=None,
         rag_enabled=True,
+        closed_loop=False,
     ):
         """
         backend: "ros2"（主模式，驱动现有 robot_controller）| "local"（SimRobot）
@@ -106,6 +112,10 @@ class Agent:
         self.context = AgentContext()
         self.planner = planner or build_plan_planner(self.registry)
         self.executor = PlanExecutor(self.registry)
+        # V6.4 闭环 Agent：观察 / 反思组件（默认关闭，不改变 handle 行为）
+        self.closed_loop = closed_loop
+        self.observer = ObservationManager()
+        self.reflector = ReflectionAnalyzer()
 
     def _init_rag(self):
         """初始化 RAG（模型可用时）；失败自动降级为关键词检索"""
@@ -166,6 +176,175 @@ class Agent:
             "final_message": final_message,
             "current_state": current_state,
         }
+
+    def handle_closed_loop(self, task, max_rounds=3, task_type=None):
+        """闭环执行：规划 → 执行 → 观察 → 反思 →（需要时重新规划）。
+
+        V6.4 新增能力，不影响 handle() 的原有行为。每一轮：
+          1. Planner 生成计划（会看到上一轮执行结果与失败原因）；
+          2. 轻量 Safety 预检动作参数（非法参数直接拒绝，不进入执行）；
+          3. Executor 执行；
+          4. Observation 收集执行反馈；
+          5. Reflection 判断任务是否完成、失败原因与是否需要重规划；
+          6. 需要重规划且未超过 max_rounds 时，携带失败原因进入下一轮。
+        """
+        t0 = time.monotonic()
+        resolved = self.context.resolve_reference(task)
+        self.context.update_task(resolved)
+        rounds = []
+        final_plan = None
+        final_results = []
+        final_observation = None
+        final_reflection = None
+        finished = False
+
+        for round_no in range(1, max_rounds + 1):
+            memory_text = self._retrieve_memories(resolved)
+            raw_plan = self.planner.plan(resolved, self.context, memory_text)
+            plan = normalize_plan(raw_plan)
+
+            # 2. 轻量 Safety 预检：非法动作/参数在进入执行前被拒绝
+            prechecked, rejected = self._precheck_plan(plan)
+            if rejected:
+                plan = normalize_plan(
+                    {
+                        **raw_plan,
+                        "task_analysis": raw_plan.get("task_analysis", ""),
+                        "goal": raw_plan.get("goal", "无法执行"),
+                        "steps": rejected,
+                    }
+                )
+
+            # 被 Safety 拒绝的步骤不进入执行器，但以失败结果并入本轮结果，
+            # 保证 Observation / Reflection 能看到拒绝信息。
+            step_results = self.executor.execute({"steps": prechecked}) + rejected
+            observation = self.observer.get_observation(plan, step_results)
+            reflection = self.reflector.analyze(
+                resolved, plan, step_results, observation
+            )
+            rounds.append(
+                {
+                    "round": round_no,
+                    "plan": plan,
+                    "step_results": step_results,
+                    "observation": observation,
+                    "reflection": reflection,
+                }
+            )
+            final_plan = plan
+            final_results = step_results
+            final_observation = observation
+            final_reflection = reflection
+
+            summary = self._summarize(plan, step_results)
+            current_state = self._extract_state(step_results)
+            self.context.update_result(plan, summary, current_state)
+
+            if reflection.get("need_replan") and round_no < max_rounds:
+                reason = reflection.get("reason") or "执行失败"
+                self.context.history.append(
+                    {
+                        "role": "user",
+                        "content": f"上一轮执行失败原因：{reason}，请修正计划后重试。",
+                    }
+                )
+                continue
+            finished = not reflection.get("need_replan", True)
+            break
+
+        final_message = self._summarize(final_plan, final_results)
+        current_state = self._extract_state(final_results)
+        self.last_timings = {
+            "total_seconds": round(time.monotonic() - t0, 4),
+        }
+        self._log_closed_loop(
+            task=resolved,
+            rounds=rounds,
+            final_plan=final_plan,
+            final_results=final_results,
+            finished=finished,
+            task_type=task_type,
+        )
+        return {
+            "plan": final_plan,
+            "step_results": final_results,
+            "final_message": final_message,
+            "current_state": current_state,
+            "closed_loop": {
+                "rounds": rounds,
+                "finished": finished,
+                "task_completed": bool(final_reflection and final_reflection.get("task_completed")),
+            },
+        }
+
+    @staticmethod
+    def _precheck_plan(plan):
+        """轻量 Safety 预检：检查动作参数是否合法，非法步骤标记为拒绝。
+
+        只校验不执行，作为闭环中"参数错误 → 拒绝 → 反思 → 重规划"的
+        入口；不改变原 executor 行为。
+        """
+        steps = []
+        rejected = []
+        for step in plan.get("steps", []):
+            tool = step.get("tool")
+            args = step.get("args", {}) or {}
+            action = args.get("action")
+            invalid = False
+            reason = ""
+            if tool == "robot_tool":
+                if action in ("joint_move", "move_absj"):
+                    joints = args.get("joints")
+                    if not isinstance(joints, (list, tuple)) or len(joints) != 6:
+                        invalid, reason = True, "动作参数错误：joint_move 需要 6 个关节角"
+                elif action in ("linear_move", "move_l"):
+                    target = args.get("target")
+                    if not isinstance(target, (list, tuple)) or len(target) < 3:
+                        invalid, reason = True, "动作参数错误：linear_move 需要目标位姿"
+            if invalid:
+                rejected.append(
+                    {
+                        "tool": tool,
+                        "args": args,
+                        "purpose": step.get("purpose", ""),
+                        "ok": False,
+                        "message": f"Safety 拒绝：{reason}",
+                        "result": None,
+                    }
+                )
+            else:
+                steps.append(step)
+        return steps, rejected
+
+    def _log_closed_loop(
+        self,
+        task,
+        rounds,
+        final_plan,
+        final_results,
+        finished,
+        task_type=None,
+    ):
+        """记录闭环执行过程（JSON Lines → experiments/logs/agent_execution_logs.json）"""
+        import datetime
+        import json
+
+        try:
+            os.makedirs(os.path.dirname(CLOSED_LOOP_LOG), exist_ok=True)
+            record = {
+                "task_id": f"closed-loop-{int(time.time() * 1000)}",
+                "task_type": task_type or "general",
+                "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
+                "input": task,
+                "finished": finished,
+                "rounds": rounds,
+                "final_plan": final_plan,
+                "final_result": final_results,
+            }
+            with open(CLOSED_LOOP_LOG, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception:
+            pass  # 日志失败不影响主流程
 
     def _log_task(self, task, raw_plan, plan, step_results, task_type=None):
         """V6.2: 写入统一实验日志（JSON Lines -> experiments/results/runtime_logs.json）"""
