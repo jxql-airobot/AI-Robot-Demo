@@ -162,6 +162,7 @@ AI-Robot-Demo
 ├── docs/
 │   ├── thesis/       # 公开部分：实验设计 / 开发记录（论文全文与答辩材料为私有）
 │   ├── system_design.md / architecture.md  # 系统设计与架构
+│   ├── development_conventions.md  # 开发操作约定（跨 shell 引号铁律等）
 │   └── ...           # 版本文档与学习记录
 ├── 学习记录.md       # 开发过程完整记录
 └── README.md
