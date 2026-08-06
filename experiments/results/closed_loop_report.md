@@ -9,8 +9,7 @@
 ## 2 实验环境
 
 - 操作系统：Windows，Python 3.12
-- 后端类型：ABB RobotStudio Backend（Mock 服务端，文本协议与真实
-  RAPID SocketServer 一致；本实验未连接物理 IRC5 虚拟控制器）
+- 后端类型：ABB RobotStudio 虚拟控制器（IRC5 + IRB120，TCP 127.0.0.1:30000，RAPID SocketServer 真实运行）
 - Agent 配置：closed_loop=True，rag_enabled=False
 - max_rounds：3
 
@@ -29,9 +28,9 @@
 
 | 异常类型 | 实验次数 | 恢复成功率 | 平均重规划次数 | 平均恢复时间 |
 | --- | --- | --- | --- | --- |
-| action_param | 10 | 100% (10/10) | 1.00 | 0.005 s |
-| communication | 10 | 100% (10/10) | 1.00 | 0.006 s |
-| execution | 10 | 100% (10/10) | 1.00 | 0.008 s |
+| action_param | 10 | 100% (10/10) | 1.00 | 0.328 s |
+| communication | 10 | 100% (10/10) | 1.00 | 0.297 s |
+| execution | 10 | 100% (10/10) | 1.00 | 0.300 s |
 
 原始逐次记录见 experiments/logs/closed_loop_experiment.json。
 

@@ -126,17 +126,33 @@ class FaultBackend:
         return self.real.get_state()
 
 
-def make_agent(fail_type):
-    """构造闭环 Agent：RobotStudio Backend（Mock）+ 故障注入"""
+def make_agent(fail_type, backend="mock"):
+    """构造闭环 Agent：RobotStudio Backend + 故障注入。
+
+    backend: "mock"（默认，本地 Mock 服务端）| "real"（连接真实
+    RobotStudio 虚拟控制器，端口从 robotstudio/config.json 读取）
+    """
     tmp = tempfile.mkdtemp(prefix="closed_loop_exp_")
     planner = FaultPlanner(fail_type)
-    agent = Agent(
+    kwargs = dict(
         backend="robotstudio",
         db_path=os.path.join(tmp, "exp.db"),
         planner=planner,
         rag_enabled=False,
         closed_loop=True,
     )
+    if backend == "real":
+        from robotstudio.config import load_config as load_rs_config
+        from robotstudio.robotstudio_client import RobotStudioClient
+
+        cfg = load_rs_config()
+        kwargs["robotstudio_client"] = RobotStudioClient(
+            host=cfg.get("host", "127.0.0.1"),
+            port=int(cfg.get("port", 30000)),
+            timeout_seconds=float(cfg.get("timeout", 5.0)),
+            mock=False,
+        )
+    agent = Agent(**kwargs)
     if fail_type in ("communication", "execution"):
         real_backend = agent.registry["robot_tool"].backend
         agent.registry["robot_tool"].backend = FaultBackend(
@@ -145,9 +161,9 @@ def make_agent(fail_type):
     return agent
 
 
-def run_one(fail_type, task, max_rounds=3):
+def run_one(fail_type, task, max_rounds=3, backend="mock"):
     """运行一次闭环任务，返回记录 dict"""
-    agent = make_agent(fail_type)
+    agent = make_agent(fail_type, backend=backend)
     try:
         t0 = time.monotonic()
         resp = agent.handle_closed_loop(task, max_rounds=max_rounds)
@@ -193,9 +209,16 @@ def summarize(records, fail_type):
     }
 
 
-def write_report(all_records):
+def write_report(all_records, backend="mock"):
     os.makedirs(RESULTS_DIR, exist_ok=True)
     stats = [summarize(all_records, t) for t in EXPERIMENT_TYPES]
+    backend_desc = (
+        "- 后端类型：ABB RobotStudio Backend（Mock 服务端，文本协议与真实 "
+        "RAPID SocketServer 一致；本实验未连接物理 IRC5 虚拟控制器）"
+        if backend == "mock"
+        else "- 后端类型：ABB RobotStudio 虚拟控制器（IRC5 + IRB120，"
+        "TCP 127.0.0.1:30000，RAPID SocketServer 真实运行）"
+    )
     lines = [
         "# 闭环 Agent 异常恢复实验报告",
         "",
@@ -208,8 +231,7 @@ def write_report(all_records):
         "## 2 实验环境",
         "",
         "- 操作系统：Windows，Python 3.12",
-        "- 后端类型：ABB RobotStudio Backend（Mock 服务端，文本协议与真实",
-        "  RAPID SocketServer 一致；本实验未连接物理 IRC5 虚拟控制器）",
+        backend_desc,
         "- Agent 配置：closed_loop=True，rag_enabled=False",
         "- max_rounds：3",
         "",
@@ -261,6 +283,10 @@ def write_report(all_records):
 def main():
     parser = argparse.ArgumentParser(description="闭环 Agent 异常恢复实验")
     parser.add_argument("--rounds", type=int, default=10, help="每类异常次数")
+    parser.add_argument(
+        "--backend", choices=["mock", "real"], default="mock",
+        help="执行后端：mock（本地 Mock 服务端）或 real（真实 RobotStudio）",
+    )
     args = parser.parse_args()
 
     tasks = {
@@ -271,11 +297,11 @@ def main():
     records = []
     for t in EXPERIMENT_TYPES:
         for _ in range(args.rounds):
-            records.append(run_one(t, tasks[t]))
+            records.append(run_one(t, tasks[t], backend=args.backend))
         print(f"[{t}] 完成 {args.rounds} 次")
 
     write_log(records)
-    write_report(records)
+    write_report(records, backend=args.backend)
     total = len(records)
     recovered = sum(1 for r in records if r["success"])
     print(f"[实验完成] 共 {total} 次，恢复成功 {recovered} 次 "
@@ -286,4 +312,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
