@@ -24,7 +24,7 @@
 ## 一、让 Zotero 使用 F:\ZoteroData 数据目录
 
 你的插件和文献库都在 F:\ZoteroData，但 Zotero 目前默认数据目录是
-C:\Users\zlx06\Zotero（旧目录，没有插件），需要切换一次：
+C:\Users\<用户名>\Zotero（旧目录，没有插件），需要切换一次：
 
 1. 关闭 Zotero（如果开着）；
 2. 重新打开 Zotero → 菜单栏 编辑 → 设置 → 高级 → 文件和文件夹；

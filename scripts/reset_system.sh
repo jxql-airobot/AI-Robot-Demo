@@ -13,7 +13,6 @@ pkill -9 -f 'ros2 daemo[n]' 2>/dev/null
 sleep 3
 
 source /opt/ros/humble/setup.bash
-source /home/zlx06/ros2_ws/install/setup.bash
+source /home/$USER/ros2_ws/install/setup.bash
 setsid nohup ros2 launch ai_robot demo_v4.launch.py > /tmp/launcher_sim.log 2>&1 &
 echo RESET_DONE
-

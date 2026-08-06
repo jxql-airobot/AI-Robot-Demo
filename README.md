@@ -9,6 +9,48 @@
 
 ---
 
+## Project Positioning
+
+AI-Robot-Demo is an LLM Agent based industrial robot intelligent task
+execution system.
+
+The system integrates:
+
+- Large Language Model Agent
+- Retrieval-Augmented Generation
+- Safety constrained planning
+- Robot abstraction interface
+- ABB RobotStudio IRC5 integration
+- Closed-loop observation-reflection-recovery mechanism
+- RobotWebServices based controller recovery
+
+> 项目定位：工业机器人 LLM Agent 软件系统研究原型——面向科研展示、
+> 导师评审与论文/开源复用，而非普通代码 Demo。
+
+## 系统执行架构（闭环）
+
+```
+User
+  ↓
+LLM Agent
+  ↓
+Task Planner
+  ↓
+Safety Layer
+  ↓
+Robot Interface
+  ↓
+ABB RobotStudio / Gazebo
+  ↓
+Observation
+  ↓
+Reflection
+  ↓
+Recovery
+  ↓
+Replanning
+```
+
 ## 项目简介
 
 传统工业机器人依赖固定程序与人工示教，难以理解自然语言任务。本项目探索用
@@ -87,6 +129,20 @@ flowchart TD
 | SQLite + numpy | 记忆持久化与向量检索 |
 | OpenCV | 视觉颜色识别 |
 
+## 实验结果
+
+| 实验 | 结果 |
+| --- | --- |
+| 真实 RobotStudio 验证 | 20/20 成功 |
+| 闭环异常恢复 | 100% |
+| RWS 自动恢复 | 10/10 成功 |
+| RAG 准确率提升 | 20% → 55% |
+| 平均任务耗时 | 3.61 s |
+
+更多实验报告见 [experiments/results/](experiments/results/)（消融 /
+RAG 对比 / 性能 / 真实 RobotStudio 验证 / Recovery / RWS 自动恢复 /
+端到端闭环恢复案例）。
+
 ## 当前成果
 
 ### 版本历程（V1 ~ V6.3）
@@ -105,6 +161,11 @@ flowchart TD
 | V6.1 | ABB RobotStudio 真实联调（TCP + RAPID + IRC5） | ✅ |
 | V6.2 | 真实 MoveL + CJointT 真值 + GETPOSE + 实验基准 + 论文稳定化 | ✅ |
 | V6.3 | 论文展示层（实验数据看板 / 任务回放 / 系统信息页） | ✅ |
+| V6.4 | 闭环 Agent（Observation-Reflection-Replanning） | ✅ |
+| V6.6 | RecoveryManager 三级错误分级恢复 + 真实错误反馈 | ✅ |
+| V6.7 | RWS 控制器级自动恢复接口（Digest 认证 / E-log / resetpp） | ✅ |
+| V6.8 | RWS 真实验证：50050 停止级错误 10 轮自动恢复（100%） | ✅ |
+| V6.9 | 端到端闭环恢复案例（真实链路 10 轮，任务完成率 100%） | ✅ |
 
 ### ABB RobotStudio 真实联调
 
@@ -149,7 +210,13 @@ ABB IRB120 机器人执行
 
 ```
 AI-Robot-Demo
-├── agent/            # Agent 层（Planner / Executor / Tools / RAG）
+├── agent/            # Agent 层（Planner / Executor / Tools / RAG / 闭环）
+│   ├── planner/      #   规划器接口与实现
+│   ├── tools/        #   Robot Interface 与后端抽象（Local/Gazebo/RobotStudio）
+│   ├── rag/          #   RAG 工业知识增强（嵌入 / 检索 / 向量库）
+│   ├── observation/  #   执行反馈统一观察模块
+│   ├── reflection/   #   确定性异常分类反思模块
+│   └── recovery/     #   RecoveryManager + RWS 控制器级自动恢复
 ├── robotstudio/      # ABB RobotStudio 模块（TCP 客户端 / RAPID / 测试）
 ├── ros2_ws/          # ROS2 + Gazebo 仿真（WSL）
 ├── gui/              # Streamlit 图形界面
@@ -157,7 +224,8 @@ AI-Robot-Demo
 ├── experiments/      # 实验评测（任务集 / 基准脚本 / 日志 / 结果 / 图表）
 │   ├── tasklog/      #   统一实验日志系统
 │   ├── results/      #   实验数据（CSV / JSON / 报告）
-│   ├── logs/         #   实验过程日志
+│   ├── scripts/      #   论文实验复现脚本（含 RWS 恢复 / 端到端闭环）
+│   └── logs/         #   实验过程日志（本地生成，不入库）
 │   └── figures/      #   实验图表
 ├── docs/
 │   ├── thesis/       # 公开部分：实验设计 / 开发记录（论文全文与答辩材料为私有）

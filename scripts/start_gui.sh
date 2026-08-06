@@ -5,7 +5,7 @@ export PYTHONIOENCODING=utf-8
 # 清理上次残留的 GUI 进程, 防止 8501 端口被占用
 pkill -f streamlit 2>/dev/null
 sleep 1
-cd /mnt/f/AI-Projects/AI-Robot-Demo
+cd "$(dirname "$0")/../.."
 source /opt/ros/humble/setup.bash
 source ~/ros2_ws/install/setup.bash
 echo "=== V5.1 Streamlit GUI ==="

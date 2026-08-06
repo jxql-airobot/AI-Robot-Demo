@@ -3,12 +3,16 @@
 ' 启动逻辑在 scripts/launcher_background_*.sh 中（setsid 保持后台进程）。
 
 Set ws = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+scriptDir = fso.GetParentFolderName(WScript.ScriptFullName)
+wslPath = Replace(scriptDir, "\", "/")
+wslPath = "/mnt/" & LCase(Left(wslPath, 1)) & Mid(wslPath, 3)
 
 ' 1) ROS2 + Gazebo 仿真系统（隐藏后台）
-ws.Run "wsl.exe -d Ubuntu-22.04 -e bash /mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_sim.sh", 0, False
+ws.Run "wsl.exe -d Ubuntu-22.04 -e bash " & wslPath & "/scripts/launcher_background_sim.sh", 0, False
 
 ' 2) Streamlit GUI（隐藏后台，与仿真并行启动，不固定等待）
-ws.Run "wsl.exe -d Ubuntu-22.04 -e bash /mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_gui.sh", 0, False
+ws.Run "wsl.exe -d Ubuntu-22.04 -e bash " & wslPath & "/scripts/launcher_background_gui.sh", 0, False
 
 ' 3) 动态等待 GUI 就绪（最长 120 秒，每 2 秒轮询一次），就绪后立即打开浏览器
 For i = 1 To 60

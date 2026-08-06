@@ -29,7 +29,7 @@ Start-Process -FilePath 'wsl.exe' -ArgumentList '...' # 部分会话下命令根
 1. **把命令写成脚本文件**（`scripts/*.sh` / `*.ps1`），调用时只传简单路径：
 
    ```powershell
-   wsl.exe -d Ubuntu-22.04 -e bash /mnt/f/AI-Projects/AI-Robot-Demo/scripts/xxx.sh
+   wsl.exe -d Ubuntu-22.04 -e bash <项目在WSL中的路径>/scripts/xxx.sh
    ```
 
 2. 需要后台常驻进程时，在脚本**内部**用：
@@ -86,4 +86,3 @@ Start-Process -FilePath 'wsl.exe' -ArgumentList '...' # 部分会话下命令根
 - GUI 端口固定 `8501`；仿真由 `robot_controller / brain_node / vision_node`
   三个节点组成，缺一不可（`pgrep -c` 在 WSL 下偶发误报，以 `ps aux`
   为准）。
-

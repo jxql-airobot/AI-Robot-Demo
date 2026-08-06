@@ -17,15 +17,16 @@ param(
 $base = $PSScriptRoot
 if (-not $base) { $base = 'F:\AI-Projects\AI-Robot-Demo' }
 $scripts = Join-Path $base 'scripts'
+$wslBase = ($base -replace '\\', '/' -replace '^[A-Za-z]:', ('/mnt/' + $base.Substring(0, 1).ToLower()))
 
 if ($Background) {
     Write-Host '[后台模式] 启动 ROS2 + Gazebo 与 GUI（无窗口）...'
     # 启动逻辑放在独立 .sh 脚本中，Launcher 只传脚本路径，避免 wsl 参数
     # 传递中的引号/特殊字符问题（Start-Process wsl.exe 与内联 -lc 均不可靠）。
-    $simScript = '/mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_sim.sh'
+    $simScript = "$wslBase/scripts/launcher_background_sim.sh"
     & wsl.exe -d Ubuntu-22.04 -e bash $simScript
     Start-Sleep -Seconds 12
-    $guiScript = '/mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_gui.sh'
+    $guiScript = "$wslBase/scripts/launcher_background_gui.sh"
     & wsl.exe -d Ubuntu-22.04 -e bash $guiScript
     Start-Sleep -Seconds 15
     try { Start-Process 'http://localhost:8501' } catch { Write-Host "自动打开浏览器失败: $_" }

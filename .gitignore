@@ -25,6 +25,17 @@ venv/
 experiments/results/runtime_logs.json
 experiments/results/idle_probe_result.txt
 
+# 运行日志与临时产物（可重新生成，不入库）
+experiments/logs/
+runtime_logs/
+
+# 按时间戳命名的运行快照报告（可重新生成，不入库）
+experiments/results/2026*.md
+
+# Office / PDF 文档（本地生成，不公开）
+*.docx
+*.pdf
+
 # 模型与大文件（不上传）
 models/
 cache/

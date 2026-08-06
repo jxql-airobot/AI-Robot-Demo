@@ -5,7 +5,7 @@
 ## 第一步：安装 RobotWare
 
 1. 本机已确认安装 **RobotWare 6.08.1040**（路径
-   `C:\Users\zlx06\AppData\Local\ABB Industrial IT\Robotics IT\RobotWare\RobotWare_6.08.1040`）
+   `C:\Users\<用户名>\AppData\Local\ABB Industrial IT\Robotics IT\RobotWare\RobotWare_6.08.1040`）
 2. 若换机器未安装，从 ABB 官方渠道下载（见 `docs/robotware_install.md`）
 3. 运行 `python robotstudio/check_environment.py` 确认
 

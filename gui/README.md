@@ -11,7 +11,7 @@ Streamlit 图形界面，作为独立客户端连接 AI-Robot-Demo 的 ROS2 仿�
 cd ~
 source /opt/ros/humble/setup.bash
 source ~/ros2_ws/install/setup.bash
-cd /mnt/f/AI-Projects/AI-Robot-Demo
+cd <项目根目录>  # 例如 /mnt/c/MyProjects/AI-Robot-Demo
 streamlit run gui/app.py
 ```
 
