@@ -52,10 +52,16 @@ class RobotStudioBackend:
             )
             if reply.get("ok"):
                 stage, error = "ok", ""
-            elif "RAPID error" in message:
-                stage, error = "motion", message
             else:
-                stage, error = "rapid", message
+                # 结构化错误：RAPID 运动错误（如 50050）带 code/type/message，
+                # 供 ObservationManager / ReflectionAnalyzer 解析
+                stage = reply.get("stage") or "rapid"
+                error = {
+                    "code": reply.get("error_code"),
+                    "type": reply.get("error_type") or "execution",
+                    "message": reply.get("error_message") or message,
+                    "raw_message": message,
+                }
             return {
                 "ok": bool(reply.get("ok")),
                 "success": bool(reply.get("ok")),
@@ -95,6 +101,23 @@ class RobotStudioBackend:
                 "joints": None,
                 "connected": False,
                 "last_action": self.last_action,
+            }
+
+    def query_error(self):
+        """主动读取控制器最近一次机器人错误（RAPID ERRINFO）。
+
+        返回: {"ok", "error_code", "error_message", "message"}
+        通信失败时不抛异常，返回 ok=False。
+        """
+        try:
+            self.client.connect()
+            return self.client.send_action({"action": "query_error"})
+        except Exception as exc:
+            return {
+                "ok": False,
+                "message": f"查询控制器错误失败: {exc}",
+                "error_code": None,
+                "error_message": None,
             }
 
     def close(self):

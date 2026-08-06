@@ -60,6 +60,7 @@ class TaskLogger:
             or [],
             "success": bool(fields.get("success", False)),
             "error": fields.get("error", fields.get("error_message", "")),
+            "error_code": fields.get("error_code"),
             "response_time": fields.get("response_time"),
             "planning_time": fields.get("planning_time"),
             "execution_time": fields.get("execution_time"),

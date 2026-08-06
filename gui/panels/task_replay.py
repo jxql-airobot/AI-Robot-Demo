@@ -107,9 +107,15 @@ def render():
             calls = r.get("tool_calls") or []
             if step.get("step") is not None and 1 <= step["step"] <= len(calls):
                 args = json.dumps(calls[step["step"] - 1].get("args", {}), ensure_ascii=False)
+            code = ""
+            if not step.get("ok"):
+                result = step.get("result")
+                structured = result.get("error") if isinstance(result, dict) else None
+                if isinstance(structured, dict) and structured.get("code"):
+                    code = f" ⚠️ 错误码 {structured['code']}"
             st.markdown(
                 f"{_step_icon(step.get('ok'))} **第 {step.get('step')} 步** "
-                f"[{step.get('tool')}] {args} — {step.get('message', '')}"
+                f"[{step.get('tool')}] {args} — {step.get('message', '')}{code}"
             )
 
     st.markdown("**④ 完成**")

@@ -105,6 +105,15 @@ class Ros2Backend(AgentBackend):
         self.last_task = task
         steps = resp["plan"].get("steps", [])
         self.last_success = bool(steps) and all(r.get("ok") for r in resp["step_results"])
+        # 最近一次机器人错误码（如 50050），供界面展示
+        self.last_error_code = None
+        for r in resp["step_results"]:
+            if not r.get("ok"):
+                result = r.get("result")
+                structured = result.get("error") if isinstance(result, dict) else None
+                if isinstance(structured, dict) and structured.get("code"):
+                    self.last_error_code = str(structured["code"])
+                    break
         timings = getattr(self.agent, "last_timings", {})
         self.last_exec_s = timings.get("exec_seconds")
         return resp

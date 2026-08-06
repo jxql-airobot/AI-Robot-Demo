@@ -134,6 +134,11 @@ class RobotTool(BaseTool):
             "result": {
                 "workspace": out.get("workspace"),
                 "gripper": out.get("gripper"),
+                # 结构化错误信息（RobotStudio 运动错误等），供闭环 Observation
+                # 解析 error_code / error_type；成功时为空
+                "error": out.get("error"),
+                "stage": out.get("stage"),
+                "joints": out.get("joints"),
             },
             "message": message,
         }

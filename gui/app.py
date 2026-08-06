@@ -86,7 +86,13 @@ def format_agent_results(resp):
             step_args = plan_steps[index].get("args", {})
             if step_args:
                 args = f" `{json.dumps(step_args, ensure_ascii=False)}`"
-        lines.append(f"{mark} [{r.get('tool')}]{args} {r.get('message', '')}")
+        code = ""
+        if not r.get("ok"):
+            result = r.get("result")
+            structured = result.get("error") if isinstance(result, dict) else None
+            if isinstance(structured, dict) and structured.get("code"):
+                code = f" ⚠️ 错误码 {structured['code']}"
+        lines.append(f"{mark} [{r.get('tool')}]{args} {r.get('message', '')}{code}")
     if resp.get("final_message"):
         lines.append(f"**{L.AGENT_FINAL}**：{resp['final_message']}")
     return "\n".join(lines)
@@ -336,7 +342,7 @@ with tab_robot:
         st.rerun()
 
     # V6.2: 当前任务 / 执行时间 / 成功状态（跨后端通用）
-    task_stats = st.columns(3)
+    task_stats = st.columns(4)
     task_stats[0].metric(
         L.ROB_LAST_TASK, (backend.last_task or "-")[:18]
     )
@@ -352,6 +358,8 @@ with tab_robot:
         else ("❌ 失败" if backend.last_success is False else "-")
     )
     task_stats[2].metric(L.ROB_LAST_SUCCESS, success_text)
+    err_code = getattr(backend, "last_error_code", None)
+    task_stats[3].metric(L.ROB_LAST_ERROR, err_code or "无")
 
     odom = backend.get_odom()
     if not odom:

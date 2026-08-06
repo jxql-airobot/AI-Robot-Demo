@@ -361,6 +361,15 @@ class Agent:
                 for s in steps
             ]
             errors = [r.get("message") for r in step_results if not r.get("ok")]
+            error_codes = []
+            for r in step_results:
+                if not r.get("ok"):
+                    result = r.get("result")
+                    structured = (
+                        result.get("error") if isinstance(result, dict) else None
+                    )
+                    if isinstance(structured, dict) and structured.get("code"):
+                        error_codes.append(str(structured["code"]))
             timings = self.last_timings
             TaskLogger().log(
                 task_type=task_type or "general",
@@ -374,6 +383,7 @@ class Agent:
                 execution_result=step_results,
                 success=bool(steps) and all(r.get("ok") for r in step_results),
                 error="; ".join(errors) if errors else "",
+                error_code=",".join(dict.fromkeys(error_codes)) or None,
                 response_time=timings.get("total_seconds"),
                 planning_time=timings.get("plan_seconds"),
                 execution_time=timings.get("exec_seconds"),

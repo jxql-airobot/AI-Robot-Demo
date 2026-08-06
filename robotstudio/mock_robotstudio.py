@@ -26,6 +26,9 @@ class MockRobotStudioServer:
         self.joints = [0.0] * 6      # 当前关节角度
         self.pose = [0.0] * 6        # 最近一次 MOVEL 目标位姿 (x,y,z,rx,ry,rz)
         self.last_action = None      # 最后执行的动作
+        self.last_errno = 0          # 最近一次错误码（0 表示无错误）
+        self.last_err_name = "none"  # 最近一次错误名称
+        self.fail_next = None        # 可选：下一次 MOVEL 模拟的错误 (errno, name)
         self._server = None
         self._thread = None
         self._running = False
@@ -106,6 +109,12 @@ class MockRobotStudioServer:
                 values = [float(x) for x in cmd[5:].strip().split(",")]
                 if len(values) != 6:
                     return "ERROR MOVEL 需要 6 个位姿参数 (x,y,z,rx,ry,rz)"
+                if self.fail_next is not None:
+                    errno, name = self.fail_next
+                    self.last_errno = errno
+                    self.last_err_name = name
+                    self.fail_next = None
+                    return f"ERROR_RAPID {errno} {name}"
                 self.pose = values
                 self.last_action = "linear_move"
                 return f"OK {','.join(str(j) for j in self.joints)}"
@@ -115,6 +124,8 @@ class MockRobotStudioServer:
             return f"OK {','.join(str(v) for v in self.pose)}"
         if cmd == "GETPOS" or cmd == "STATUS":
             return f"OK {','.join(str(j) for j in self.joints)}"
+        if cmd == "ERRINFO":
+            return f"ERRINFO {self.last_errno} {self.last_err_name}"
         return f"ERROR 未知命令: {cmd}"
 
 

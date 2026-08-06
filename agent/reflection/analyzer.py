@@ -52,8 +52,42 @@ class ReflectionAnalyzer:
         }
 
     @staticmethod
-    def _diagnose(failed, observation):
+    def _map_rapid_code(error_code):
+        """把 RobotStudio RAPID 错误码映射为 (原因, 错误类型)"""
+        mapping = {
+            "50050": ("robot_unreachable", "execution"),
+            "50027": ("joint_out_of_range", "execution"),
+            "50501": ("short_distance", "execution"),
+            "10020": ("execution_error_state", "execution"),
+            "40195": ("limit_error", "execution"),
+            "41595": ("socket_error", "communication"),
+        }
+        if error_code and error_code in mapping:
+            return mapping[error_code]
+        if error_code:
+            return ("motion_failed", "execution")
+        return None, None
+
+    @classmethod
+    def _diagnose(cls, failed, observation):
         """从失败步骤与 Observation 中提取失败原因并分类"""
+        # 1) 优先使用结构化错误码（真实机器人错误）
+        error_code = observation.get("error_code")
+        code_reason, code_type = cls._map_rapid_code(error_code)
+        if code_reason:
+            return f"[RobotStudio] {code_reason} (error {error_code})", code_type
+
+        for r in failed:
+            result = r.get("result")
+            structured = result.get("error") if isinstance(result, dict) else None
+            if isinstance(structured, dict) and structured.get("code"):
+                reason, etype = cls._map_rapid_code(str(structured["code"]))
+                if reason:
+                    return (
+                        f"[RobotStudio] {reason} (error {structured['code']})",
+                        etype,
+                    )
+
         error_type = "unknown"
         reason_parts = []
         for r in failed:
@@ -79,4 +113,3 @@ class ReflectionAnalyzer:
             reason_parts.append(str(obs_error))
         reason = "；".join(reason_parts) if reason_parts else "任务执行失败"
         return reason, error_type
-

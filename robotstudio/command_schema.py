@@ -41,18 +41,69 @@ def build_command(action):
         return "GETPOSE\n"
     if act == "status":
         return "STATUS\n"
+    if act in ("query_error", "get_error"):
+        return "ERRINFO\n"
     raise ValueError(f"未知 RobotStudio 动作: {act}")
 
 
+def _extract_rapid_error(message):
+    """从错误消息中提取 (error_code, error_code_name)"""
+    import re
+
+    m = re.search(r"(\d{4,5})", message or "")
+    code = m.group(1) if m else None
+    lower = (message or "").lower()
+    for name in ("position_unreachable", "joint_out_of_range", "short_distance",
+                 "motion_execution_error"):
+        if name in lower:
+            return code, name
+    if code:
+        return code, "motion_execution_error"
+    return code, None
+
+
 def parse_reply(line):
-    """解析服务端回复 -> {"ok": bool, "message": str, "joints": list|None}"""
+    """解析服务端回复 -> {"ok", "message", "joints", 以及结构化错误字段}"""
     line = (line or "").strip()
     upper = line.upper()
     if upper.startswith("OK"):
         data = line[2:].strip()
         return {"ok": True, "message": data or "执行成功", "joints": _parse_joints(data)}
+    if upper.startswith("ERROR_RAPID"):
+        code, name = _extract_rapid_error(line)
+        return {
+            "ok": False,
+            "message": f"RAPID error {code} ({name})" if code else line,
+            "joints": None,
+            "error_code": code,
+            "error_type": "execution",
+            "error_message": name or "motion_execution_error",
+            "stage": "motion",
+        }
+    if upper.startswith("ERRINFO"):
+        parts = line[7:].strip().split()
+        errno = parts[0] if parts else "0"
+        name = parts[1] if len(parts) > 1 else "none"
+        return {
+            "ok": True,
+            "message": f"最近错误: {name} (error {errno})" if errno != "0" else "无错误",
+            "joints": None,
+            "error_code": None if errno == "0" else errno,
+            "error_type": "execution" if errno != "0" else None,
+            "error_message": None if errno == "0" else name,
+        }
     if upper.startswith("ERROR"):
-        return {"ok": False, "message": line[5:].strip() or "未知错误", "joints": None}
+        message = line[5:].strip() or "未知错误"
+        code, name = _extract_rapid_error(message)
+        return {
+            "ok": False,
+            "message": message,
+            "joints": None,
+            "error_code": code,
+            "error_type": "execution" if code else None,
+            "error_message": name,
+            "stage": "rapid",
+        }
     return {"ok": False, "message": f"无法解析 RobotStudio 回复: {line}", "joints": None}
 
 

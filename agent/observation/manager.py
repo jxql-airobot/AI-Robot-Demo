@@ -39,15 +39,36 @@ class ObservationManager:
         ]
         success = len(step_results) > 0 and len(failed) == 0
         error = None
+        error_code = None
+        error_source = None
+        raw_message = None
         if failed:
             first = failed[0]
             error = first.get("message") or f"步骤 {first.get('step')} 执行失败"
+            # 结构化错误（RobotStudio 运动错误等）：result.error 为 dict
+            result = first.get("result")
+            structured = result.get("error") if isinstance(result, dict) else None
+            if isinstance(structured, dict):
+                error_code = structured.get("code")
+                raw_message = structured.get("raw_message") or error
+                stage = structured.get("stage") or (result or {}).get("stage")
+                error_source = (
+                    "RobotStudio"
+                    if stage == "motion" or (raw_message or "").find("RAPID") >= 0
+                    else "backend"
+                )
+            else:
+                raw_message = error
+                error_source = "backend"
         status = "completed" if success else "failed"
         return {
             "success": success,
             "status": status,
             "robot_state": robot_state or self._extract_robot_state(step_results),
             "error": error,
+            "error_code": error_code,
+            "error_source": error_source,
+            "raw_message": raw_message,
             "need_replan": not success,
             "timestamp": datetime.datetime.now().isoformat(timespec="seconds"),
         }
@@ -68,4 +89,3 @@ class ObservationManager:
                 if state:
                     return state
         return {}
-
