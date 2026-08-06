@@ -161,6 +161,10 @@ MODULE socket_server
         move_reply := "OK " + JointString();
         RETURN;
     ERROR
+        ! stop-level motion errors (e.g. 50050) stop the RAPID task on the
+        ! controller; RecoveryManager on the Python side is responsible for
+        ! external restart (restart RAPID task / reconnect), never bypass
+        ! safety protection here.
         move_reply := MotionErrorReply(ERRNO);
         RETURN;
     ENDPROC

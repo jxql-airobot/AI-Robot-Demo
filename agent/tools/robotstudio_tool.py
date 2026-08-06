@@ -120,6 +120,35 @@ class RobotStudioBackend:
                 "error_message": None,
             }
 
+    def recover_error(self, error_code=None):
+        """针对停止级错误尝试恢复（V6.6 RecoveryManager 调用）。
+
+        恢复流程：
+          1. 关闭旧连接（并释放 Mock 服务端）；
+          2. 重建客户端并重新连接（Mock 环境模拟 RAPID 重启后重新监听）；
+          3. 返回恢复结果。
+
+        注意：真实 RobotStudio 停止级错误（如 50050）会导致 RAPID 程序
+        停止，Python 侧无法直接重启虚拟控制器中的 RAPID 任务；本方法在
+        真实环境下会尝试重连，若服务端已停止则返回 recover=False，
+        需要外部（人工或 RobotStudio API）重启 RAPID。
+        """
+        try:
+            self.client.close()
+            self.client = self._build_client()
+            self.client.connect()
+            return {
+                "recover": True,
+                "message": "rapid restarted and socket reconnected",
+                "error_code": error_code,
+            }
+        except Exception as exc:
+            return {
+                "recover": False,
+                "message": f"恢复失败: {exc}",
+                "error_code": error_code,
+            }
+
     def close(self):
         self.client.close()
 

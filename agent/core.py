@@ -16,6 +16,7 @@ from agent.executor import PlanExecutor
 from agent.observation import ObservationManager
 from agent.plan_schema import normalize_plan
 from agent.planner import build_plan_planner
+from agent.recovery import RecoveryManager
 from agent.reflection import ReflectionAnalyzer
 from agent.tools.environment_tool import EnvironmentTool
 from agent.tools.memory_tool import MemoryTool
@@ -116,6 +117,10 @@ class Agent:
         self.closed_loop = closed_loop
         self.observer = ObservationManager()
         self.reflector = ReflectionAnalyzer()
+        # V6.6: 错误分级与自动恢复（仅闭环流程使用，不影响 handle）
+        self.recovery = RecoveryManager(
+            backend=self.registry["robot_tool"].backend
+        )
 
     def _init_rag(self):
         """初始化 RAG（模型可用时）；失败自动降级为关键词检索"""
@@ -241,11 +246,34 @@ class Agent:
             self.context.update_result(plan, summary, current_state)
 
             if reflection.get("need_replan") and round_no < max_rounds:
+                # V6.6: RecoveryManager 错误分级与恢复决策
+                error_info = {
+                    "error_code": observation.get("error_code"),
+                    "error_type": reflection.get("error_type"),
+                    "error_message": observation.get("error_message")
+                    or observation.get("raw_message")
+                    or reflection.get("reason"),
+                    "raw_message": observation.get("raw_message"),
+                }
+                recovery = self.recovery.recover(error_info)
+                if not recovery.get("recoverable"):
+                    # 安全相关异常：禁止自动恢复，返回人工处理
+                    finished = False
+                    self.context.history.append(
+                        {
+                            "role": "user",
+                            "content": f"需要人工处理：{recovery.get('reason')}",
+                        }
+                    )
+                    break
                 reason = reflection.get("reason") or "执行失败"
+                if recovery.get("status") == "success":
+                    reason = f"{reason}（已自动恢复：{recovery.get('recovery_detail', '')}）"
                 self.context.history.append(
                     {
                         "role": "user",
-                        "content": f"上一轮执行失败原因：{reason}，请修正计划后重试。",
+                        "content": f"上一轮执行失败原因：{reason}，"
+                                   f"恢复状态：{recovery.get('status')}，请修正计划后重试。",
                     }
                 )
                 continue
