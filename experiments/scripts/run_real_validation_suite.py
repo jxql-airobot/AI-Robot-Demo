@@ -157,10 +157,25 @@ def protect_plan(plan):
     - linear_move 一律替换为关节运动（真实 MOVEL 在虚拟控制器上会
       因起始姿态触发 50027/50501/50050 并停止 SocketServer）；
     - joint_move 关节值限幅，缺参数时回退到非奇异姿态；
-    - 其他只读动作（move_home / get_position / get_pose）原样保留。
+    - 其他只读动作（move_home / get_position / get_pose）原样保留；
+    - 含运动步骤的任务在开始前先回 HOME、结束后回 HOME，避免连续任务
+      之间出现零距离运动（控制器可能记录 50501 短距离运动噪音）。
     """
     steps = []
-    for step in plan.get("steps") or []:
+    raw_steps = plan.get("steps") or []
+    has_motion = any(
+        s.get("tool") == "robot_tool"
+        and s.get("args", {}).get("action") in
+        ("move_home", "joint_move", "linear_move")
+        for s in raw_steps
+    )
+    if has_motion:
+        steps.append({
+            "tool": "robot_tool",
+            "args": {"action": "move_home"},
+            "purpose": "执行保护：任务开始前先回 HOME，避免零距离运动",
+        })
+    for step in raw_steps:
         if step.get("tool") != "robot_tool":
             steps.append(step)
             continue
@@ -177,6 +192,16 @@ def protect_plan(plan):
             steps.append({**step, "args": args})
         else:
             steps.append(step)
+    if has_motion and not (
+        steps
+        and steps[-1].get("tool") == "robot_tool"
+        and steps[-1].get("args", {}).get("action") == "move_home"
+    ):
+        steps.append({
+            "tool": "robot_tool",
+            "args": {"action": "move_home"},
+            "purpose": "执行保护：任务结束后回 HOME，保持起始状态一致",
+        })
     return steps
 
 
