@@ -1,4 +1,4 @@
-# 密钥文件，绝不能上传
+﻿# 密钥文件，绝不能上传
 .env
 
 # V2 记忆数据库(运行时自动生成)
@@ -86,3 +86,21 @@ docs/software_copyright/
 *评价*
 *评审*
 *评分*
+
+# 论文过程材料（本地私有，不公开）
+docs/thesis/advisor_review.md
+docs/thesis/agent_loop_design.md
+docs/thesis/algorithm_design.md
+docs/thesis/closed_loop_experiment.md
+docs/thesis/contribution_summary.md
+docs/thesis/defense_outline.md
+docs/thesis/figure_plan.md
+docs/thesis/final_review.md
+docs/thesis/real_recovery_experiment.md
+docs/thesis/real_robotstudio_validation.md
+docs/thesis/recovery_strategy.md
+docs/thesis/robot_error_feedback_design.md
+docs/thesis/rws_recovery_experiment.md
+docs/thesis/software_architecture_analysis.md
+docs/thesis/software_quality_analysis.md
+docs/thesis/closed_loop_agent_method.md
