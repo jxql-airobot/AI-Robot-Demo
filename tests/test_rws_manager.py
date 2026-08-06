@@ -5,13 +5,14 @@ import json
 import socket
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from unittest import mock
 
 from agent.recovery.manager import RecoveryManager
 from agent.recovery.rws_manager import RWSManager
 
 
 class MockRWSHandler(BaseHTTPRequestHandler):
-    """模拟 RWS 服务端：状态查询 + reset + setpp + start。"""
+    """模拟 RWS 服务端：状态查询 + set-entrypoint + resetpp + start。"""
 
     exec_state = "stopped"
     events = []
@@ -21,20 +22,26 @@ class MockRWSHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if "/rw/rapid/execution" in self.path:
-            body = f"<state><ctlexecstate>{self.exec_state}</ctlexecstate></state>"
+            body = (
+                '<html><body><div class="state">'
+                f'<span class="ctrlexecstate">{self.exec_state}</span>'
+                "</div></body></html>"
+            )
             self._send(200, body.encode())
         else:
             self._send(404, b"not found")
 
     def do_POST(self):
-        if "action=reset" in self.path:
-            self.exec_state = "stopped"
+        if "set-entrypoint" in self.path:
             self._send(204, b"")
-        elif "action=setpp" in self.path:
+        elif "action=resetpp" in self.path:
             self._send(204, b"")
         elif "action=start" in self.path:
             type(self).events.append("start")
             self.exec_state = "running"
+            self._send(204, b"")
+        elif "action=stop" in self.path:
+            self.exec_state = "stopped"
             self._send(204, b"")
         else:
             self._send(404, b"not found")
@@ -94,9 +101,28 @@ def start_tcp_listener():
 def test_check_connection_unavailable():
     server, port = start_server(MockUnavailableHandler)
     try:
-        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}/rws")
+        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}")
         assert mgr.check_connection()["controller_available"] is False
         assert mgr.get_controller_state()["state"] == "unknown"
+    finally:
+        server.shutdown()
+
+
+def test_state_parsing_running_and_error():
+    server, port = start_server(MockRWSHandler)
+    try:
+        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
+        assert mgr.get_controller_state()["state"] == "stopped"
+        # 带控制器错误状态块时，应解析为 error 并提取错误码
+        body = (
+            '<html><body><div class="status">'
+            '<span class="code">50050</span></div>'
+            '<div class="state"><span class="ctrlexecstate">stopped</span>'
+            "</div></body></html>"
+        )
+        exec_state, error_code = RWSManager._parse_execution(body)
+        assert exec_state == "stopped"
+        assert error_code == "50050"
     finally:
         server.shutdown()
 
@@ -106,7 +132,7 @@ def test_recover_controller_success():
     server, port = start_server(MockRWSHandler)
     sock, sock_port = start_tcp_listener()
     try:
-        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}/rws", timeout=2.0)
+        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
         result = mgr.recover_controller(
             {"error_code": "50050", "error_type": "execution"},
             port=sock_port,
@@ -117,9 +143,23 @@ def test_recover_controller_success():
         assert result["recover_time"] >= 0
         assert result["socket_reconnect_time"] >= 0
         assert "start" in MockRWSHandler.events
+        step_names = [s["step"] for s in result["steps"]]
+        assert step_names == ["set_entry", "reset_pp", "start"]
     finally:
         server.shutdown()
         sock.close()
+
+
+def test_recover_controller_safety_error_manual():
+    server, port = start_server(MockRWSHandler)
+    try:
+        mgr = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
+        result = mgr.recover_controller(
+            {"error_code": "50050", "error_message": "急停"})
+        assert result["status"] == "need_manual"
+        assert result["recoverable"] is False
+    finally:
+        server.shutdown()
 
 
 def test_recovery_manager_uses_rws_when_available():
@@ -127,16 +167,18 @@ def test_recovery_manager_uses_rws_when_available():
     sock, sock_port = start_tcp_listener()
     try:
         backend = MockBackend()
-        rws = RWSManager(base_url=f"http://127.0.0.1:{port}/rws", timeout=2.0)
-        mgr = RecoveryManager(backend=backend, recoverer=rws)
-        plan = mgr.recover({
-            "error_code": "50050",
-            "error_type": "execution",
-            "error_message": "position_unreachable",
-        })
-        # 探测 RWS 时没有真实 30000 端口，recover_controller 会走 rws 流程
-        # 但 wait_for_socket 使用默认 30000；此处验证 RWS 被优先尝试：
-        assert plan.get("rws_result") is not None
+        rws = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
+        # 避免 wait_for_socket 轮询真实 30000 端口：直接判定恢复成功
+        with mock.patch.object(rws, "wait_for_socket", return_value=True):
+            mgr = RecoveryManager(backend=backend, recoverer=rws)
+            plan = mgr.recover({
+                "error_code": "50050",
+                "error_type": "execution",
+                "error_message": "position_unreachable",
+            })
+        assert plan.get("recovery_source") == "rws"
+        assert plan["status"] == "success"
+        assert backend.recover_calls == 0
     finally:
         server.shutdown()
         sock.close()
@@ -146,13 +188,13 @@ def test_recovery_manager_fallback_when_rws_unavailable():
     server, port = start_server(MockUnavailableHandler)
     try:
         backend = MockBackend()
-        rws = RWSManager(base_url=f"http://127.0.0.1:{port}/rws", timeout=2.0)
+        rws = RWSManager(base_url=f"http://127.0.0.1:{port}", timeout=2.0)
         mgr = RecoveryManager(backend=backend, recoverer=rws)
         plan = mgr.recover({
             "error_code": "50050",
             "error_type": "execution",
         })
-        # RWS 不可用 → 回退到 backend.recover_error，原有流程不受影响
+        # RWS 不可用 → 回退到 backend.recover_error，原流程不受影响
         assert plan["status"] == "success"
         assert plan.get("recovery_source") != "rws"
         assert backend.recover_calls == 1

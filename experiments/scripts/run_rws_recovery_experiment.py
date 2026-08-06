@@ -79,7 +79,7 @@ def rws_enable_steps():
         "  4. 应用配置并重启虚拟控制器；\n"
         "  5. 端口冲突处理：RWS 默认使用 80 端口，若本机 IIS 已占用 80，"
         "需停止 IIS 默认网站或调整端口，使 RWS 可绑定；\n"
-        "  6. 验证：访问 http://127.0.0.1/rws/rw/rapid/execution "
+        "  6. 验证：访问 http://127.0.0.1/rw/rapid/execution "
         "应返回控制器状态。"
     )
 
@@ -134,7 +134,7 @@ def verify_recovery(client, cfg):
 def main():
     parser = argparse.ArgumentParser(description="RWS 自动恢复真实验证")
     parser.add_argument("--rounds", type=int, default=10)
-    parser.add_argument("--rws-url", default="http://127.0.0.1/rws")
+    parser.add_argument("--rws-url", default="http://127.0.0.1")
     args = parser.parse_args()
 
     cfg = load_config()
@@ -207,6 +207,11 @@ def main():
     with open(LOG_PATH, "w", encoding="utf-8") as fh:
         for r in records:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+    # 释放 RWS 会话槽，避免长时间运行占用控制器会话
+    try:
+        rws.logout()
+    except Exception:  # noqa: BLE001
+        pass
 
     ok_n = sum(1 for r in records if r["task_success"])
     lines = [
@@ -216,7 +221,7 @@ def main():
         "",
         "- RobotStudio 6.08.01 + RobotWare 6.08.1040 + IRB120 + IRC5 虚拟控制器",
         f"- RWS: {args.rws_url}；RAPID SocketServer TCP {host}:{port}",
-        "- 恢复流程：50050 → RWS reset → PP to main → start → 等 Socket 恢复",
+        "- 恢复流程：50050 → RWS 设置入口 → resetpp → start → 等 Socket 恢复",
         "",
         "## 2 实验结果",
         "",
