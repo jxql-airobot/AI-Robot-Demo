@@ -134,8 +134,17 @@ class RobotStudioBackend:
         需要外部（人工或 RobotStudio API）重启 RAPID。
         """
         try:
+            # 保留原客户端的 mock/real 标志与连接参数，重建客户端
+            mock = self.client.mock
+            host = self.client.host
+            port = self.client.port
+            timeout = self.client.timeout
             self.client.close()
-            self.client = self._build_client()
+            from robotstudio.robotstudio_client import RobotStudioClient
+
+            self.client = RobotStudioClient(
+                host=host, port=port, timeout_seconds=timeout, mock=mock
+            )
             self.client.connect()
             return {
                 "recover": True,
