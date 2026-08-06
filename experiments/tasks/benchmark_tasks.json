@@ -1,0 +1,252 @@
+[
+  {
+    "task_id": "B01",
+    "category": "basic",
+    "input": "让机器人回到初始位置"
+  },
+  {
+    "task_id": "B02",
+    "category": "basic",
+    "input": "回零"
+  },
+  {
+    "task_id": "B03",
+    "category": "basic",
+    "input": "移动机器人到指定关节位置"
+  },
+  {
+    "task_id": "B04",
+    "category": "basic",
+    "input": "执行关节运动到目标角度"
+  },
+  {
+    "task_id": "B05",
+    "category": "basic",
+    "input": "执行直线运动到目标点"
+  },
+  {
+    "task_id": "B06",
+    "category": "basic",
+    "input": "直线运动到指定坐标"
+  },
+  {
+    "task_id": "B07",
+    "category": "basic",
+    "input": "获取当前机器人关节位置"
+  },
+  {
+    "task_id": "B08",
+    "category": "basic",
+    "input": "读取机器人当前状态"
+  },
+  {
+    "task_id": "B09",
+    "category": "basic",
+    "input": "查询机器人TCP位姿"
+  },
+  {
+    "task_id": "B10",
+    "category": "basic",
+    "input": "让机械臂回到原点"
+  },
+  {
+    "task_id": "B11",
+    "category": "basic",
+    "input": "移动到工作区域"
+  },
+  {
+    "task_id": "B12",
+    "category": "basic",
+    "input": "执行一次安全回零"
+  },
+  {
+    "task_id": "B13",
+    "category": "basic",
+    "input": "获取当前末端位置"
+  },
+  {
+    "task_id": "B14",
+    "category": "basic",
+    "input": "把机器人移动到指定姿态"
+  },
+  {
+    "task_id": "B15",
+    "category": "basic",
+    "input": "查询当前关节角"
+  },
+  {
+    "task_id": "B16",
+    "category": "basic",
+    "input": "回到等待位置"
+  },
+  {
+    "task_id": "B17",
+    "category": "basic",
+    "input": "执行直线插补运动"
+  },
+  {
+    "task_id": "B18",
+    "category": "basic",
+    "input": "获取机器人当前位置"
+  },
+  {
+    "task_id": "B19",
+    "category": "basic",
+    "input": "移动关节到安全姿态"
+  },
+  {
+    "task_id": "B20",
+    "category": "basic",
+    "input": "读取当前工具坐标"
+  },
+  {
+    "task_id": "S01",
+    "category": "sequence",
+    "input": "完成一个零件搬运流程"
+  },
+  {
+    "task_id": "S02",
+    "category": "sequence",
+    "input": "把红色零件从当前位置移动到检测区"
+  },
+  {
+    "task_id": "S03",
+    "category": "sequence",
+    "input": "执行抓取并放置到成品区"
+  },
+  {
+    "task_id": "S04",
+    "category": "sequence",
+    "input": "移动、抓取、放置的完整流程"
+  },
+  {
+    "task_id": "S05",
+    "category": "sequence",
+    "input": "把蓝色零件搬运到指定位置"
+  },
+  {
+    "task_id": "S06",
+    "category": "sequence",
+    "input": "完成一次上料搬运"
+  },
+  {
+    "task_id": "S07",
+    "category": "sequence",
+    "input": "将零件从检测区转移到成品区"
+  },
+  {
+    "task_id": "S08",
+    "category": "sequence",
+    "input": "执行搬运任务并返回报告"
+  },
+  {
+    "task_id": "S09",
+    "category": "sequence",
+    "input": "抓取零件并移动到目标工位"
+  },
+  {
+    "task_id": "S10",
+    "category": "sequence",
+    "input": "完成装配前搬运流程"
+  },
+  {
+    "task_id": "S11",
+    "category": "sequence",
+    "input": "把工件移动到加工区"
+  },
+  {
+    "task_id": "S12",
+    "category": "sequence",
+    "input": "执行取放料流程"
+  },
+  {
+    "task_id": "S13",
+    "category": "sequence",
+    "input": "移动末端到抓取位并执行抓取"
+  },
+  {
+    "task_id": "S14",
+    "category": "sequence",
+    "input": "完成零件周转流程"
+  },
+  {
+    "task_id": "S15",
+    "category": "sequence",
+    "input": "把半成品搬运到下一工位"
+  },
+  {
+    "task_id": "M01",
+    "category": "multi",
+    "input": "扫描工作台并报告所有零件位置"
+  },
+  {
+    "task_id": "M02",
+    "category": "multi",
+    "input": "移动到工作区域并读取当前状态"
+  },
+  {
+    "task_id": "M03",
+    "category": "multi",
+    "input": "先回零再移动到指定点"
+  },
+  {
+    "task_id": "M04",
+    "category": "multi",
+    "input": "读取状态后执行直线运动"
+  },
+  {
+    "task_id": "M05",
+    "category": "multi",
+    "input": "移动到检测区并报告关节状态"
+  },
+  {
+    "task_id": "M06",
+    "category": "multi",
+    "input": "完成搬运后回到初始位置"
+  },
+  {
+    "task_id": "M07",
+    "category": "multi",
+    "input": "查询位姿后移动到目标点"
+  },
+  {
+    "task_id": "M08",
+    "category": "multi",
+    "input": "执行回零并读取TCP位姿"
+  },
+  {
+    "task_id": "M09",
+    "category": "multi",
+    "input": "先扫描再移动到第一个目标"
+  },
+  {
+    "task_id": "M10",
+    "category": "multi",
+    "input": "移动到工作区域、读取状态、返回报告"
+  },
+  {
+    "task_id": "M11",
+    "category": "multi",
+    "input": "完成搬运流程并回零"
+  },
+  {
+    "task_id": "M12",
+    "category": "multi",
+    "input": "读取关节位置后执行直线运动"
+  },
+  {
+    "task_id": "M13",
+    "category": "multi",
+    "input": "移动到目标点并查询当前位置"
+  },
+  {
+    "task_id": "M14",
+    "category": "multi",
+    "input": "执行一次完整的定位-搬运-回位流程"
+  },
+  {
+    "task_id": "M15",
+    "category": "multi",
+    "input": "扫描环境并完成零件搬运"
+  }
+]

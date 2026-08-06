@@ -5,7 +5,7 @@ MODULE socket_server
     VAR string received_string;
     VAR num joint_angles{6};
     VAR string move_reply;
-    ! 最近一次机器人错误（供 ERRINFO 查询），0/none 表示无错误
+    ! last robot error (queried via ERRINFO); 0/none means no error
     VAR num last_errno := 0;
     VAR string last_err_name := "none";
     VAR robtarget pose_target := [[0,0,0],[1,0,0,0],[0,0,0,0],[9E9,9E9,9E9,9E9,9E9,9E9]];
@@ -62,9 +62,9 @@ MODULE socket_server
         RETURN;
     ENDPROC
 
-    ! 结构化运动错误回复：ERROR_RAPID <errno> <code>
-    ! 让 Python 侧能识别真实机器人执行错误（如 50050 位置超出范围），
-    ! 并保持 SocketServer 继续监听，不因单次运动错误退出。
+    ! structured motion error reply: ERROR_RAPID <errno> <code>
+    ! lets Python recognize real robot execution errors (e.g. 50050)
+    ! and keeps SocketServer listening instead of stopping on one error
     FUNC string ErrorCodeName(num errno)
         IF errno = 50050 THEN
             RETURN "position_unreachable";
@@ -89,7 +89,7 @@ MODULE socket_server
         RETURN "ERROR_RAPID " + NumToStr(errno,0) + " " + last_err_name;
     ENDFUNC
 
-    ! 查询最近一次机器人错误：ERRINFO <errno> <name>（0 none 表示无错误）
+    ! query last robot error: ERRINFO <errno> <name> (0 none = no error)
     FUNC string ErrorInfoReply()
         RETURN "ERRINFO " + NumToStr(last_errno,0) + " " + last_err_name;
     ENDFUNC

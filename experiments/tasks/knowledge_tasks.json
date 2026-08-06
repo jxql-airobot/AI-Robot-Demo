@@ -138,5 +138,145 @@
       }
     ],
     "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_211",
+    "task_type": "knowledge",
+    "input": "机器人报50050位置超出范围是什么原因？",
+    "expected_keywords": ["50050", "工作空间", "位姿"],
+    "seed_memory": [
+      {
+        "topic": "50050位置超出范围",
+        "content": "50050位置超出范围表示目标笛卡尔位姿位于IRB120工作空间之外，或直线路径中间点越界；应检查目标位姿可达性，直线运动前先用MOVEJ到非奇异姿态。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_212",
+    "task_type": "knowledge",
+    "input": "50027关节超出范围错误如何处理？",
+    "expected_keywords": ["50027", "关节", "工作空间"],
+    "seed_memory": [
+      {
+        "topic": "50027关节超出范围",
+        "content": "50027关节超出范围表示目标关节角超出关节限位，应检查关节角是否在IRB120允许范围内，并避免轴2与轴3组合越界。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_213",
+    "task_type": "knowledge",
+    "input": "50501短距离运动是什么错误？",
+    "expected_keywords": ["50501", "短距离", "运动"],
+    "seed_memory": [
+      {
+        "topic": "50501短距离运动",
+        "content": "50501短距离运动表示运动距离过短，可能因目标与当前位姿几乎重合；应检查目标位姿是否与当前位置区分开。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_214",
+    "task_type": "knowledge",
+    "input": "GETPOSE返回的TCP位姿包含哪些信息？",
+    "expected_keywords": ["x", "y", "z", "欧拉角"],
+    "seed_memory": [
+      {
+        "topic": "GETPOSE返回",
+        "content": "GETPOSE返回TCP位姿x,y,z（单位米）和rx,ry,rz（欧拉角，单位度），来自RAPID的CRobT()读取真实位姿。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_215",
+    "task_type": "knowledge",
+    "input": "本项目如何验证直线运动精度？",
+    "expected_keywords": ["位移", "姿态变化", "精度"],
+    "seed_memory": [
+      {
+        "topic": "直线运动精度",
+        "content": "本项目通过100mm位移的直线运动验证精度，实测姿态变化小于0.03度；位姿反馈与DH正运动学误差小于1mm。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_216",
+    "task_type": "knowledge",
+    "input": "ConfL Off指令的作用是什么？",
+    "expected_keywords": ["ConfL", "轴配置", "自动"],
+    "seed_memory": [
+      {
+        "topic": "ConfL Off",
+        "content": "ConfL\\Off让MoveL自动选择最近的可行轴配置，避免轴配置错误（50442）；配合SingArea\\Wrist处理腕部奇异。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_217",
+    "task_type": "knowledge",
+    "input": "机器人程序停止（10125）后如何恢复？",
+    "expected_keywords": ["10125", "重启", "PP"],
+    "seed_memory": [
+      {
+        "topic": "程序停止恢复",
+        "content": "10125程序已停止通常由运动错误（如50050）触发；恢复需要手动重启RAPID任务（PP到socket_main再启动），SocketServer重新监听30000端口。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_218",
+    "task_type": "knowledge",
+    "input": "SocketCreate、SocketBind、SocketListen各自的作用是什么？",
+    "expected_keywords": ["SocketCreate", "SocketBind", "SocketListen"],
+    "seed_memory": [
+      {
+        "topic": "Socket指令",
+        "content": "SocketCreate创建套接字，SocketBind绑定0.0.0.0:30000，SocketListen开始监听，SocketAccept接受客户端连接，SocketReceive/SocketSend收发命令。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_219",
+    "task_type": "knowledge",
+    "input": "IRB120机器人的工作空间半径大约是多少？",
+    "expected_keywords": ["580", "工作空间", "毫米"],
+    "seed_memory": [
+      {
+        "topic": "IRB120工作空间",
+        "content": "IRB120是ABB六轴小型工业机器人，工作空间半径约580mm；目标位姿超出该范围会触发50050位置超出范围错误。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
+  },
+  {
+    "task_id": "task_220",
+    "task_type": "knowledge",
+    "input": "为什么直线运动前要先执行MOVEJ？",
+    "expected_keywords": ["MOVEJ", "非奇异", "直线"],
+    "seed_memory": [
+      {
+        "topic": "直线运动前置",
+        "content": "直线运动（MOVEL）要求路径上每个中间点都可达；从奇异姿态直接直线运动会失败，因此先用MOVEJ到非奇异姿态（如[10,20,30,45,60,0]）再执行MOVEL。",
+        "category": "工业知识"
+      }
+    ],
+    "evaluation": "answer_and_citation"
   }
 ]
