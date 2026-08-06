@@ -1,4 +1,4 @@
-# AI Robot Demo 官方启动器
+﻿# AI Robot Demo 官方启动器
 # ====================================================
 # 用法:
 #   .\AI_Robot_Demo_Launcher.ps1            # 前台模式: 打开 4 个窗口(推荐调试)
@@ -20,11 +20,13 @@ $scripts = Join-Path $base 'scripts'
 
 if ($Background) {
     Write-Host '[后台模式] 启动 ROS2 + Gazebo 与 GUI（无窗口）...'
-    Start-Process -FilePath 'wsl.exe' -ArgumentList '-d', 'Ubuntu-22.04', '--',
-        'bash', (Join-Path $scripts 'start_ros2_system.sh') -WindowStyle Hidden
+    # 启动逻辑放在独立 .sh 脚本中，Launcher 只传脚本路径，避免 wsl 参数
+    # 传递中的引号/特殊字符问题（Start-Process wsl.exe 与内联 -lc 均不可靠）。
+    $simScript = '/mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_sim.sh'
+    & wsl.exe -d Ubuntu-22.04 -e bash $simScript
     Start-Sleep -Seconds 12
-    Start-Process -FilePath 'wsl.exe' -ArgumentList '-d', 'Ubuntu-22.04', '--',
-        'bash', (Join-Path $scripts 'start_gui.sh') -WindowStyle Hidden
+    $guiScript = '/mnt/f/AI-Projects/AI-Robot-Demo/scripts/launcher_background_gui.sh'
+    & wsl.exe -d Ubuntu-22.04 -e bash $guiScript
     Start-Sleep -Seconds 15
     try { Start-Process 'http://localhost:8501' } catch { Write-Host "自动打开浏览器失败: $_" }
     Write-Host '完成。'
