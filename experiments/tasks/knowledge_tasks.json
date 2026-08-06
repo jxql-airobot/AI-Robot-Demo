@@ -3,7 +3,12 @@
     "task_id": "task_201",
     "task_type": "knowledge",
     "input": "MOVEJ和MOVEL有什么区别？",
-    "expected_keywords": ["MoveAbsJ", "MoveL", "关节", "直线"],
+    "expected_keywords": [
+      "MoveAbsJ",
+      "MoveL",
+      "关节",
+      "直线"
+    ],
     "seed_memory": [
       {
         "topic": "RAPID运动指令",
@@ -11,13 +16,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_202",
     "task_type": "knowledge",
     "input": "机器人报警应该如何处理？",
-    "expected_keywords": ["50026", "50442", "ConfL", "奇点"],
+    "expected_keywords": [
+      "50026",
+      "50442",
+      "ConfL",
+      "奇点"
+    ],
     "seed_memory": [
       {
         "topic": "机器人报警处理",
@@ -25,13 +36,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_203",
     "task_type": "knowledge",
     "input": "执行直线运动需要注意哪些参数？",
-    "expected_keywords": ["位姿", "速度", "姿态", "毫米"],
+    "expected_keywords": [
+      "位姿",
+      "速度",
+      "姿态",
+      "毫米"
+    ],
     "seed_memory": [
       {
         "topic": "直线运动参数",
@@ -39,13 +56,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_204",
     "task_type": "knowledge",
     "input": "RAPID Socket通信客户端断开如何处理？",
-    "expected_keywords": ["41595", "断开", "CloseClient"],
+    "expected_keywords": [
+      "41595",
+      "断开",
+      "CloseClient"
+    ],
     "seed_memory": [
       {
         "topic": "Socket断开处理",
@@ -53,13 +75,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_205",
     "task_type": "knowledge",
     "input": "机器人靠近奇点报50026如何避免？",
-    "expected_keywords": ["50026", "奇异", "非奇异", "SingArea"],
+    "expected_keywords": [
+      "50026",
+      "奇异",
+      "非奇异",
+      "SingArea"
+    ],
     "seed_memory": [
       {
         "topic": "奇点避免",
@@ -67,13 +95,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_206",
     "task_type": "knowledge",
     "input": "RAPID运动指令中的速度参数v1000代表什么？",
-    "expected_keywords": ["1000", "毫米", "秒", "速度"],
+    "expected_keywords": [
+      "1000",
+      "毫米",
+      "秒",
+      "速度"
+    ],
     "seed_memory": [
       {
         "topic": "RAPID速度参数",
@@ -81,13 +115,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_207",
     "task_type": "knowledge",
     "input": "本项目TCP通信协议中坐标用什么单位？",
-    "expected_keywords": ["米", "毫米", "1000", "换算"],
+    "expected_keywords": [
+      "米",
+      "毫米",
+      "1000",
+      "换算"
+    ],
     "seed_memory": [
       {
         "topic": "TCP坐标单位",
@@ -95,13 +135,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_208",
     "task_type": "knowledge",
     "input": "执行直线搬运前需要做什么准备？",
-    "expected_keywords": ["MOVEJ", "非奇异", "位姿", "可达"],
+    "expected_keywords": [
+      "MOVEJ",
+      "非奇异",
+      "位姿",
+      "可达"
+    ],
     "seed_memory": [
       {
         "topic": "直线运动前置条件",
@@ -109,13 +155,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Operation Procedure"
   },
   {
     "task_id": "task_209",
     "task_type": "knowledge",
     "input": "机器人报50442轴配置错误应该怎么处理？",
-    "expected_keywords": ["50442", "ConfL", "轴配置", "MoveL"],
+    "expected_keywords": [
+      "50442",
+      "ConfL",
+      "轴配置",
+      "MoveL"
+    ],
     "seed_memory": [
       {
         "topic": "50442轴配置错误",
@@ -123,13 +175,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_210",
     "task_type": "knowledge",
     "input": "SocketAccept超时为什么会触发40195限制错误？",
-    "expected_keywords": ["40195", "超时", "WAIT_MAX", "重试"],
+    "expected_keywords": [
+      "40195",
+      "超时",
+      "WAIT_MAX",
+      "重试"
+    ],
     "seed_memory": [
       {
         "topic": "40195限制错误",
@@ -137,13 +195,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_211",
     "task_type": "knowledge",
     "input": "机器人报50050位置超出范围是什么原因？",
-    "expected_keywords": ["50050", "工作空间", "位姿"],
+    "expected_keywords": [
+      "50050",
+      "工作空间",
+      "位姿"
+    ],
     "seed_memory": [
       {
         "topic": "50050位置超出范围",
@@ -151,13 +214,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_212",
     "task_type": "knowledge",
     "input": "50027关节超出范围错误如何处理？",
-    "expected_keywords": ["50027", "关节", "工作空间"],
+    "expected_keywords": [
+      "50027",
+      "关节",
+      "工作空间"
+    ],
     "seed_memory": [
       {
         "topic": "50027关节超出范围",
@@ -165,13 +233,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_213",
     "task_type": "knowledge",
     "input": "50501短距离运动是什么错误？",
-    "expected_keywords": ["50501", "短距离", "运动"],
+    "expected_keywords": [
+      "50501",
+      "短距离",
+      "运动"
+    ],
     "seed_memory": [
       {
         "topic": "50501短距离运动",
@@ -179,13 +252,19 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_214",
     "task_type": "knowledge",
     "input": "GETPOSE返回的TCP位姿包含哪些信息？",
-    "expected_keywords": ["x", "y", "z", "欧拉角"],
+    "expected_keywords": [
+      "x",
+      "y",
+      "z",
+      "欧拉角"
+    ],
     "seed_memory": [
       {
         "topic": "GETPOSE返回",
@@ -193,13 +272,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_215",
     "task_type": "knowledge",
     "input": "本项目如何验证直线运动精度？",
-    "expected_keywords": ["位移", "姿态变化", "精度"],
+    "expected_keywords": [
+      "位移",
+      "姿态变化",
+      "精度"
+    ],
     "seed_memory": [
       {
         "topic": "直线运动精度",
@@ -207,13 +291,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_216",
     "task_type": "knowledge",
     "input": "ConfL Off指令的作用是什么？",
-    "expected_keywords": ["ConfL", "轴配置", "自动"],
+    "expected_keywords": [
+      "ConfL",
+      "轴配置",
+      "自动"
+    ],
     "seed_memory": [
       {
         "topic": "ConfL Off",
@@ -221,13 +310,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_217",
     "task_type": "knowledge",
     "input": "机器人程序停止（10125）后如何恢复？",
-    "expected_keywords": ["10125", "重启", "PP"],
+    "expected_keywords": [
+      "10125",
+      "重启",
+      "PP"
+    ],
     "seed_memory": [
       {
         "topic": "程序停止恢复",
@@ -235,13 +329,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Error Knowledge"
   },
   {
     "task_id": "task_218",
     "task_type": "knowledge",
     "input": "SocketCreate、SocketBind、SocketListen各自的作用是什么？",
-    "expected_keywords": ["SocketCreate", "SocketBind", "SocketListen"],
+    "expected_keywords": [
+      "SocketCreate",
+      "SocketBind",
+      "SocketListen"
+    ],
     "seed_memory": [
       {
         "topic": "Socket指令",
@@ -249,13 +348,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_219",
     "task_type": "knowledge",
     "input": "IRB120机器人的工作空间半径大约是多少？",
-    "expected_keywords": ["580", "工作空间", "毫米"],
+    "expected_keywords": [
+      "580",
+      "工作空间",
+      "毫米"
+    ],
     "seed_memory": [
       {
         "topic": "IRB120工作空间",
@@ -263,13 +367,18 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Robot Knowledge"
   },
   {
     "task_id": "task_220",
     "task_type": "knowledge",
     "input": "为什么直线运动前要先执行MOVEJ？",
-    "expected_keywords": ["MOVEJ", "非奇异", "直线"],
+    "expected_keywords": [
+      "MOVEJ",
+      "非奇异",
+      "直线"
+    ],
     "seed_memory": [
       {
         "topic": "直线运动前置",
@@ -277,6 +386,515 @@
         "category": "工业知识"
       }
     ],
-    "evaluation": "answer_and_citation"
+    "evaluation": "answer_and_citation",
+    "category": "Operation Procedure"
+  },
+  {
+    "task_id": "task_221",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "IRB120??????????",
+    "expected_keywords": [
+      "6",
+      "?"
+    ],
+    "seed_memory": [
+      {
+        "topic": "IRB120 ????",
+        "content": "ABB IRB120 ????????????? 3 kg???????? 580 mm?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_222",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "RAPID ? tool0 ? wobj0 ???????",
+    "expected_keywords": [
+      "??",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???",
+        "content": "tool0 ??????????????????wobj0 ????????????????? tool0 ? wobj0 ?? TCP ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_223",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "GETPOS ? GETPOSE ?????????????",
+    "expected_keywords": [
+      "??",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "??????",
+        "content": "GETPOS ?? 6 ??????CJointT ?????GETPOSE ?? TCP ??????x/y/z ???????????? x/y/z ?????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_224",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "RAPID ? MoveAbsJ ? MoveJ ???????",
+    "expected_keywords": [
+      "??",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "RAPID ????",
+        "content": "MoveAbsJ ????????????????MoveJ ?????? robtarget????????? MOVEJ ?? MoveAbsJ?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_225",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "RAPID ? fine ? zone ?????????",
+    "expected_keywords": [
+      "fine",
+      "zone"
+    ],
+    "seed_memory": [
+      {
+        "topic": "RAPID ???",
+        "content": "fine ????????????????????zone ???????????????????????????? fine?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_226",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "v1000 ?????????????????",
+    "expected_keywords": [
+      "1000",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "v1000 ???????? 1000??????MoveL???? mm/s?????????? v1000?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_227",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "CJointT() ?????????",
+    "expected_keywords": [
+      "??",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "CJointT() ??????????????jointtarget????? JointString ???????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_228",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "CRobT() ?????????",
+    "expected_keywords": [
+      "??",
+      "robtarget"
+    ],
+    "seed_memory": [
+      {
+        "topic": "TCP ??",
+        "content": "CRobT() ??????? TCP ???robtarget???????????? GETPOSE ??????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_229",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "RAPID ? robtarget ?????????",
+    "expected_keywords": [
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "RAPID robtarget.trans ??????????? TCP ???????????? 1000 ??? RAPID ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_230",
+    "task_type": "knowledge",
+    "category": "Robot Knowledge",
+    "input": "IRB120 ????????????",
+    "expected_keywords": [
+      "3",
+      "kg"
+    ],
+    "seed_memory": [
+      {
+        "topic": "IRB120 ????",
+        "content": "ABB IRB120 ????????????? 3 kg???????? 580 mm?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_231",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "????? 10020 ????????????",
+    "expected_keywords": [
+      "10020",
+      "????"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10020 ????????????????????????????? 50050/50027 ????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_232",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "10021 ?????????????",
+    "expected_keywords": [
+      "10021",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10021 ??????????????????????RWS resetpp ???????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_233",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "10067 ????????????",
+    "expected_keywords": [
+      "10067",
+      "????"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10067 ???????????????main/socket_main??? RWS resetpp ????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_234",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "10151 ????????????",
+    "expected_keywords": [
+      "10151",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10151 ?? RAPID ??????RWS ?? action=start ???????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_235",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "10068 ??????????",
+    "expected_keywords": [
+      "10068",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10068 ????????????? 10151????????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_236",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "10002 ??????????????",
+    "expected_keywords": [
+      "10002",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "10002 ?????????? main?RWS resetpp ?????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_237",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "50050 ????????????????",
+    "expected_keywords": [
+      "10020",
+      "10125"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "50050 ????????????? 10020 ????????? 10125 ????????? resetpp + start?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_238",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "RAPID ? ERRNO ? ERRINFO ?????????",
+    "expected_keywords": [
+      "ERRNO",
+      "ERRINFO"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "ERRNO ? RAPID ??????ERROR ??????ERRINFO ????????????????????? socket_server ?? ERRINFO ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_239",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "???????? RAPID ????????",
+    "expected_keywords": [
+      "ERROR_RAPID",
+      "???"
+    ],
+    "seed_memory": [
+      {
+        "topic": "??????",
+        "content": "????? RAPID ?? ERROR_RAPID <???> <???>?? ERROR_RAPID 50050 position_unreachable??? Python ?????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_240",
+    "task_type": "knowledge",
+    "category": "Error Knowledge",
+    "input": "41595 ???????????????",
+    "expected_keywords": [
+      "41595",
+      "???"
+    ],
+    "seed_memory": [
+      {
+        "topic": "???????",
+        "content": "41595 ?????????? Socket ???????????????????????????????? ERROR ???????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_241",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "???? RobotStudio ????????????",
+    "expected_keywords": [
+      "?????",
+      "SocketServer"
+    ],
+    "seed_memory": [
+      {
+        "topic": "??????",
+        "content": "?? RobotStudio + IRC5 ????????RAPID SocketServer ?? 30000 ????? host/port ? 127.0.0.1:30000?",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_242",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "??? RAPID SocketServer ???????",
+    "expected_keywords": [
+      "30000"
+    ],
+    "seed_memory": [
+      {
+        "topic": "Socket ??",
+        "content": "socket_server.mod ? SocketBind \"0.0.0.0\", 30000??? TCP 30000 ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_243",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "?? RobotWebServices?RWS?????????",
+    "expected_keywords": [
+      "Firewall",
+      "RobotWebServices"
+    ],
+    "seed_memory": [
+      {
+        "topic": "RWS ??",
+        "content": "? RobotStudio ????? ? Communication ? Firewall Manager ??? RobotWebServices?? EnableOnPublicNet / EnableOnPrivateNet ?? Yes??????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_244",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "RWS ?????????????????",
+    "expected_keywords": [
+      "Digest",
+      "Default User"
+    ],
+    "seed_memory": [
+      {
+        "topic": "RWS ??",
+        "content": "RWS ?? HTTP Digest ??????? Default User / ?? robotics??????????ABBCX cookie??",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_245",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "50050 ???????? RWS ?????????",
+    "expected_keywords": [
+      "resetpp",
+      "start"
+    ],
+    "seed_memory": [
+      {
+        "topic": "RWS ??",
+        "content": "RWS ????????????socket_main?? resetpp ? start ? ?? 30000 ???? Socket ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_246",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "?? Agent ?????????",
+    "expected_keywords": [
+      "??",
+      "??",
+      "???"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "?? Agent ?????? ? ?? ? Observation??????? Reflection??????? Recovery????? ??????????????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_247",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "Python ?????????????",
+    "expected_keywords": [
+      "3",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "?????",
+        "content": "RobotStudioClient ???????? 3 ??_send_with_retry retry=3??????????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_248",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "????????????????",
+    "expected_keywords": [
+      "3",
+      "max_rounds"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "handle_closed_loop ????????? max_rounds=3????????????",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_249",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "??????HOME??????????",
+    "expected_keywords": [
+      "0,0,0,0,0,0"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "HOME ??? 6 ???????? 0?0,0,0,0,0,0???? MoveAbsJ ???",
+        "category": "????"
+      }
+    ]
+  },
+  {
+    "task_id": "task_250",
+    "task_type": "knowledge",
+    "category": "Operation Procedure",
+    "input": "?????????????? 50050 ???",
+    "expected_keywords": [
+      "MOVEL",
+      "??"
+    ],
+    "seed_memory": [
+      {
+        "topic": "????",
+        "content": "?????????? MOVEL ?? [1.2,1.2,1.2,0,0,0]???????? IRB120 ?????????? 50050 ???????",
+        "category": "????"
+      }
+    ]
   }
 ]

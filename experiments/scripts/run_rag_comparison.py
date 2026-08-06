@@ -81,6 +81,7 @@ def run_without_rag(tasks):
             {
                 "task_id": task["task_id"],
                 "input": task["input"],
+                "category": task.get("category", "Robot Knowledge"),
                 "success": rate == 1.0,
                 "keyword_rate": rate,
                 "keywords": total,
@@ -115,6 +116,7 @@ def run_with_rag(tasks):
                 {
                     "task_id": task["task_id"],
                     "input": task["input"],
+                    "category": task.get("category", "Robot Knowledge"),
                     "success": rate == 1.0,
                     "keyword_rate": rate,
                     "keywords": total,
@@ -150,7 +152,7 @@ def write_report(no_rag, with_rag):
         "",
         "## 1 实验目的",
         "",
-        "在 20 个工业知识任务上对比 LLM 直接回答与 LLM + RAG（工业知识库",
+        f"在 {len({r['task_id'] for r in no_rag})} 个工业知识任务上对比 LLM 直接回答与 LLM + RAG（工业知识库",
         "检索注入）的回答正确率、参数正确率与响应时间。",
         "",
         "## 2 实验环境",
@@ -158,7 +160,8 @@ def write_report(no_rag, with_rag):
         "- 操作系统：Windows，Python 3.12",
         "- 大语言模型：DeepSeek（deepseek-chat）",
         "- 语义检索：bge-small-zh-v1.5（CPU）",
-        "- 知识库：ABB RAPID / RobotStudio / 工业机器人参数（20 条知识）",
+        "- 知识库：ABB RAPID / RobotStudio / 工业机器人参数"
+        f"（{len(no_rag)} 条知识）",
         "",
         "## 3 实验结果",
         "",
@@ -169,21 +172,39 @@ def write_report(no_rag, with_rag):
         f"| LLM + RAG | {b['total']} | {b['rate']:.1%} "
         f"({b['ok']}/{b['total']}) | {b['keyword']:.1%} | {b['time']:.3f} s |",
         "",
-        "## 4 逐题结果",
+        "## 4 分知识类别结果",
+        "",
+        "| 知识类别 | 任务数 | 无RAG正确率 | RAG正确率 |",
+        "| --- | --- | --- | --- |",
+    ]
+    cats = sorted({r["category"] for r in no_rag})
+    for c in cats:
+        a_items = [r for r in no_rag if r["category"] == c]
+        b_items = [r for r in with_rag if r["category"] == c]
+        a_ok = sum(1 for r in a_items if r["success"])
+        b_ok = sum(1 for r in b_items if r["success"])
+        lines.append(
+            f"| {c} | {len(a_items)} | {a_ok / len(a_items):.1%} "
+            f"({a_ok}/{len(a_items)}) | {b_ok / len(b_items):.1%} "
+            f"({b_ok}/{len(b_items)}) |"
+        )
+    lines += [
+        "",
+        "## 5 逐题结果",
         "",
         "| 任务 | 无RAG正确率 | RAG正确率 | 无RAG关键词 | RAG关键词 |",
         "| --- | --- | --- | --- | --- |",
     ]
     for r1, r2 in zip(no_rag, with_rag):
         lines.append(
-            f"| {r1['task_id']} {r1['input'][:18]} | "
+            f"| {r1['task_id']} {r1['input'][:16]} | "
             f"{'✓' if r1['success'] else '✗'} | "
             f"{'✓' if r2['success'] else '✗'} | "
             f"{r1['keyword_rate']:.0%} | {r2['keyword_rate']:.0%} |"
         )
     lines += [
         "",
-        "## 5 结果分析",
+        "## 6 结果分析",
         "",
         "（1）回答正确率：RAG 注入使回答正确率由 "
         f"{a['rate']:.1%} 提升至 {b['rate']:.1%}；",
@@ -228,4 +249,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
